@@ -5,7 +5,6 @@ import { verify, sign } from 'jsonwebtoken';
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    console.log(req);
     const authorization = req.cookies?.token;
     if (!process.env.SECRET) {
       res.status(500).send('Server Error!');

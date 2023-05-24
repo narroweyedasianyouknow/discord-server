@@ -1,13 +1,26 @@
-import { Controller, Delete, Post, Get, Req, Res, Put } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Post,
+  Get,
+  Req,
+  Res,
+  Put,
+  Inject,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { IFolder } from './folders';
 import { fieldsChecker } from 'src/funcs/fieldChecker';
-import { postgres } from 'src/postgres';
 import { useMe } from 'src/funcs/useMe';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { Client } from 'pg';
+import { PostgreSQL } from 'src/postgres';
 
 @Controller('folders')
 export class FoldersController extends IoAdapter {
+  constructor(@Inject(PostgreSQL) private db: PostgreSQL) {
+    super();
+  }
   @Get()
   async getFolders(
     @Req()
@@ -16,11 +29,10 @@ export class FoldersController extends IoAdapter {
   ) {
     const me = useMe(request, response);
 
-    const pg = await postgres();
     const query = {
       text: `SELECT * from folders WHERE created_by = '${me}'`,
     };
-    pg.query(query, (err, res) => {
+    this.db.getServerInstantce().query(query, (err, res) => {
       if (err) {
         response.status(500).send({
           error: err.stack,
@@ -54,12 +66,11 @@ export class FoldersController extends IoAdapter {
       return;
     }
 
-    const pg = await postgres();
     const query = {
       text: 'INSERT INTO folders(name, position, ts, created_by) VALUES($1, $2, $3, $4)',
       values: [name, position, ts, me],
     };
-    pg.query(query, (err, res) => {
+    this.db.getServerInstantce().query(query, (err, res) => {
       if (err) {
         response.status(500).send({
           error: err.stack,
@@ -97,12 +108,11 @@ export class FoldersController extends IoAdapter {
       return;
     }
 
-    const pg = await postgres();
     const query = {
       text: `DELETE FROM folders WHERE id = ${id} AND created_by = '${me}'`,
       values: [],
     };
-    pg.query(query, (err, res) => {
+    this.db.getServerInstantce().query(query, (err, res) => {
       if (err) {
         response.status(500).send({
           error: err.stack,
@@ -154,14 +164,13 @@ export class FoldersController extends IoAdapter {
       position: request?.body?.position,
     };
 
-    const pg = await postgres();
     console.log(this.setByKeys(body));
     const query = {
       text: `UPDATE folders SET ${this.setByKeys(
         body,
       )} WHERE id = ${id} AND created_by = '${me}'`,
     };
-    pg.query(query, (err, res) => {
+    this.db.getServerInstantce().query(query, (err, res) => {
       if (err) {
         response.status(500).send({
           error: err.stack,
