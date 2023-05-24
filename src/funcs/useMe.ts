@@ -8,6 +8,7 @@ export const useMe = function (req: Request, res: Response) {
     try {
       decoded = verify(authorization, process.env.SECRET);
     } catch (e) {
+      console.log('ERROR::: DECODED VALUE ERROR');
       return res.status(401).send('unauthorized');
     }
     return decoded?.login;
