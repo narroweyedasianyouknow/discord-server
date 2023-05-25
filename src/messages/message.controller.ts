@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res, Put, Inject } from '@nestjs/common';
+import { Controller, Post, Req, Res, Put, Inject, Get } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { IMessage } from './message';
 import { fieldsChecker } from 'src/funcs/fieldChecker';
@@ -14,6 +14,50 @@ export class MessageController extends IoAdapter {
     @Inject(SocketIoServer) private socketServer: SocketIoServer,
   ) {
     super();
+  }
+
+  @Post('get')
+  async getMessages(
+    @Req()
+    request: Request<
+      any,
+      any,
+      {
+        id: string;
+      }
+    >,
+    @Res() response: Response,
+  ) {
+    const { id } = request.body;
+    const me = useMe(request, response);
+    if (typeof me === 'object') me();
+    const isOk = fieldsChecker(
+      request.body,
+      {
+        id: 'string',
+      },
+      response,
+    );
+    if (!isOk) {
+      return;
+    }
+
+    this.db
+      .select({
+        table: 'message',
+        condition: `WHERE subject_id = '${id}'`,
+      })
+      .then((result) => {
+        response.status(200).send({
+          response: result.rows,
+        });
+      })
+      .catch((err) => {
+        response.status(500).send({
+          error: err.stack,
+          response: false,
+        });
+      });
   }
 
   @Post()

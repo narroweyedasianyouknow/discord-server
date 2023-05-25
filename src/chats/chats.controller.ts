@@ -1,5 +1,6 @@
 import { Controller, Inject, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { SocketStore } from 'src/SocketStore';
 import errorCodes, { PostgresError } from 'src/errorCodes';
 import { fieldsChecker } from 'src/funcs/fieldChecker';
 import { useMe } from 'src/funcs/useMe';
@@ -12,54 +13,8 @@ export class ChatsController {
   constructor(
     @Inject(PostgreSQL) private db: PostgreSQL,
     @Inject(SocketIoServer) private socketServer: SocketIoServer,
+    @Inject(SocketStore) private socketStore: SocketStore,
   ) {}
-
-  @Post()
-  async joinChat(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        id: string;
-      }
-    >,
-    @Res() response: Response,
-  ) {
-    const { id } = request.body;
-    const me = useMe(request, response);
-    const isOk = fieldsChecker(
-      request.body,
-      {
-        id: 'string',
-      },
-      response,
-    );
-    if (!isOk) {
-      return;
-    }
-
-    this.db
-      .update({
-        table: `chats`,
-        text: `SET chats = array_append(chats, '${id}')`,
-        condition: `WHERE user_id = '${me}'`,
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      })
-      .then(() => {
-        response.status(200).send({
-          response: true,
-        });
-        this.socketServer.getServer().to(id).emit('joined-chat', {
-          user: me,
-        });
-      });
-  }
   @Post('create')
   async createChat(
     @Req()
@@ -88,16 +43,13 @@ export class ChatsController {
     }
 
     if (me) {
-      const joinEmit = () => {
-        this.db.update({
-          table: `person`,
-          text: `SET chats = array_append(chats, '${title}')`,
-          condition: `WHERE login = '${me}'`,
-        });
-        this.socketServer.getServer().to(title).emit('joined-chat', {
-          user: me,
-        });
-      };
+      this.db.update({
+        table: `person`,
+        text: `SET chats = array_append(chats, '${title}')`,
+        condition: `WHERE login = '${me}'`,
+      });
+      const server = this.socketStore.getUserSocket(me);
+      server?.join(title);
       this.db
         .insert({
           table: 'chats',
@@ -105,7 +57,6 @@ export class ChatsController {
           values: [title, title, me],
         })
         .then(() => {
-          joinEmit();
           response.status(200).send({
             response: {
               id: title,
@@ -116,10 +67,7 @@ export class ChatsController {
           });
         })
         .catch((err) => {
-          console.log(err);
           if ('code' in err && err.code === PostgresError.unique_violation) {
-            joinEmit();
-
             response.status(200).send({
               response: {
                 id: title,

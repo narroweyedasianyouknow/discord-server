@@ -10,6 +10,7 @@ import { PostgreSQL } from './postgres';
 import { SocketIoServer } from './socket-io.server';
 import { MessageController } from './messages/message.controller';
 import { ChatsController } from './chats/chats.controller';
+import { SocketStore } from './SocketStore';
 const controllers = [
   FoldersController,
   ProfileController,
@@ -22,7 +23,7 @@ const controllers = [
     ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'static') }),
   ],
   controllers: [AuthController, ...controllers],
-  providers: [SocketIoServer, PostgreSQL],
+  providers: [SocketIoServer, SocketStore, PostgreSQL],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

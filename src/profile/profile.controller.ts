@@ -25,7 +25,7 @@ export class ProfileController {
             table: 'chats',
             condition: `WHERE id = '${id}'`,
           });
-          array.push(chat.rows[0]);
+          if (chat.rows[0]) array.push(chat.rows[0]);
         }
         response.status(200).send({
           ...user,

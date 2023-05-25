@@ -2,11 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { PostgreSQL } from './postgres';
 import { verify } from 'jsonwebtoken';
+import { SocketStore } from './SocketStore';
 
 @Injectable()
 export class SocketIoServer {
   private server: Server;
-  constructor(@Inject(PostgreSQL) private db: PostgreSQL) {}
+  constructor(
+    @Inject(PostgreSQL) private db: PostgreSQL,
+    @Inject(SocketStore) private readonly socketStore: SocketStore,
+  ) {}
   configure(server: any): void {
     this.server = new Server(server, {
       cors: {
@@ -24,6 +28,7 @@ export class SocketIoServer {
           );
 
           if (typeof decoded !== 'string' && 'login' in decoded) {
+            this.socketStore.addUserSocket(decoded.login, socket);
             this.db
               .select<{
                 id: string;
@@ -44,6 +49,11 @@ export class SocketIoServer {
       }
       socket.on('disconnect', () => {
         console.log('socket disconnect:', socket.id);
+        const userId = socket.handshake.query.userId as string;
+        this.socketStore.removeUserSocket(userId);
+      });
+      socket.on('on join-room', (data) => {
+        console.log('socket join room:', data);
       });
     });
   }
