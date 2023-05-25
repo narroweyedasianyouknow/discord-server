@@ -26,11 +26,11 @@ export class SocketIoServer {
           if (typeof decoded !== 'string' && 'login' in decoded) {
             this.db
               .select<{
-                user_id: string;
+                id: string;
                 chats: string[];
               }>({
-                table: 'users_chats',
-                condition: `WHERE user_id = '${decoded.login}'`,
+                table: 'person',
+                condition: `WHERE login = '${decoded.login}'`,
               })
               .then((result) => {
                 socket.join(result.rows[0].chats);

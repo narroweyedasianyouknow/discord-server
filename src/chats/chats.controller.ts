@@ -1,5 +1,6 @@
 import { Controller, Inject, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import errorCodes, { PostgresError } from 'src/errorCodes';
 import { fieldsChecker } from 'src/funcs/fieldChecker';
 import { useMe } from 'src/funcs/useMe';
 import { PostgreSQL } from 'src/postgres';
@@ -73,12 +74,11 @@ export class ChatsController {
     >,
     @Res() response: Response,
   ) {
-    const { id, title } = request.body;
+    const { title } = request.body;
     const me = useMe(request, response);
     const isOk = fieldsChecker(
       request.body,
       {
-        id: 'string',
         title: 'string',
       },
       response,
@@ -88,25 +88,47 @@ export class ChatsController {
     }
 
     if (me) {
+      const joinEmit = () => {
+        this.db.update({
+          table: `person`,
+          text: `SET chats = array_append(chats, '${title}')`,
+          condition: `WHERE login = '${me}'`,
+        });
+        this.socketServer.getServer().to(title).emit('joined-chat', {
+          user: me,
+        });
+      };
       this.db
         .insert({
           table: 'chats',
           text: '(id, title, created_by) VALUES($1, $2, $3)',
-          values: [id, title, me],
-        })
-        .catch((err) => {
-          response.status(500).send({
-            error: err.stack,
-            response: false,
-          });
+          values: [title, title, me],
         })
         .then(() => {
+          joinEmit();
           response.status(200).send({
-            response: true,
+            response: {
+              id: title,
+              title: title,
+              created_by: me,
+              avatar: '',
+            },
           });
-          this.socketServer.getServer().to(id).emit('joined-chat', {
-            user: me,
-          });
+        })
+        .catch((err) => {
+          console.log(err);
+          if ('code' in err && err.code === PostgresError.unique_violation) {
+            joinEmit();
+
+            response.status(200).send({
+              response: {
+                id: title,
+                title: title,
+                created_by: me,
+                avatar: '',
+              },
+            });
+          }
         });
     } else
       response.status(401).send({

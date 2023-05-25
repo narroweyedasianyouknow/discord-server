@@ -40,6 +40,11 @@ export class AuthController {
         table: 'person',
         condition: `WHERE login = "${body?.login}"`,
       })
+      .then(() => {
+        response.status(500).send({
+          response: errorCodes['U-03'],
+        });
+      })
       .catch((err) => {
         if (err?.code === PostgresError.undefined_column) {
           scrypt(body?.password, salt, 82, (scryptError, derivedKey) => {
@@ -47,14 +52,8 @@ export class AuthController {
             this.db
               .insert({
                 table: 'person',
-                text: `(login, password) VALUES($1, $2)`,
-                values: [body?.login, hashedSaltPassword],
-              })
-              .catch((err) => {
-                response.status(500).send({
-                  error: err.stack,
-                  response: false,
-                });
+                text: `(login, password, chats) VALUES($1, $2, $3)`,
+                values: [body?.login, hashedSaltPassword, []],
               })
               .then(() => {
                 if (process.env.SECRET) {
@@ -67,12 +66,6 @@ export class AuthController {
                       expiresIn: 864e5,
                     },
                   );
-                  this.db.insert({
-                    table: 'users_chats',
-                    text: '(user_id, chats) VALUES($1, $2)',
-                    values: [body?.login, []],
-                  });
-
                   response.cookie('token', token, {
                     expires: this.expiresAge(),
                   });
@@ -80,14 +73,15 @@ export class AuthController {
                 response.status(200).send({
                   response: true,
                 });
+              })
+              .catch((err) => {
+                response.status(500).send({
+                  error: err.stack,
+                  response: false,
+                });
               });
           });
         }
-      })
-      .then(() => {
-        response.status(500).send({
-          response: errorCodes['U-03'],
-        });
       });
   }
   @Post('sign-in')

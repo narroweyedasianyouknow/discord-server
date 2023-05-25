@@ -17,9 +17,20 @@ export class ProfileController {
         table: 'person',
         condition: `WHERE login = '${me}'`,
       })
-      .then((result) => {
+      .then(async (result) => {
         const { password, ...user } = result.rows[0];
-        response.status(200).send(user);
+        const array: any[] = [];
+        for (const id of user.chats) {
+          const chat = await this.db.select({
+            table: 'chats',
+            condition: `WHERE id = '${id}'`,
+          });
+          array.push(chat.rows[0]);
+        }
+        response.status(200).send({
+          ...user,
+          chats: array,
+        });
       })
       .catch((error) => {
         response.status(400).send(error.stack);

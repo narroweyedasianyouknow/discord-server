@@ -44,7 +44,7 @@ export class PostgreSQL {
   }): Promise<QueryResult<T>> {
     const { table, condition } = props;
     const _condition = condition ? ` ${condition}` : '';
-    return this.db.query({
+    return this.db?.query({
       text: `SELECT * FROM ${table}${_condition}`,
     });
   }
@@ -56,9 +56,10 @@ export class PostgreSQL {
   }): Promise<QueryResult<T>> {
     const { table, condition, text } = props;
     const _table = `UPDATE ${table}`;
+    const _text = text ? ` ${text}` : '';
     const _condition = condition ? ` ${condition}` : '';
     return this.db.query({
-      text: `${_table}${text}${_condition}`,
+      text: `${_table}${_text}${_condition}`,
     });
   }
   /**
