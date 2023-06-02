@@ -14,7 +14,6 @@ import { PersonModule } from './person/person.module';
 import { PostgreSQL } from './postgres';
 import { UsersGuildsModule } from './users_guilds/users_guilds.module';
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { SocketIOModule } from './socket-io.module';
 import {
   UsersGuilds,
   UsersGuildsSchema,

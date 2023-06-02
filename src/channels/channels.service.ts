@@ -3,32 +3,55 @@ import { InjectModel } from '@nestjs/mongoose';
 import type { Model } from 'mongoose';
 import { Channels } from './channels.schema';
 import { ChannelType } from './channels';
+import { Guild } from '@/guild/guild.schema';
 
 @Injectable()
 export class ChannelService {
-  constructor(@InjectModel(Channels.name) private model: Model<Channels>) {}
+  constructor(
+    @InjectModel(Guild.name) private guild: Model<Guild>,
+    @InjectModel(Channels.name) private channel: Model<Channels>,
+  ) {}
+  // async myProfile(args: { username?: string; user_id?: string }) {
+  //   return this.user.findOne(args).lean().exec();
+  // }
 
-  async create(createPersonDto: ChannelType) {
-    const createdPerson = new this.model(createPersonDto);
-    return createdPerson.save();
+  async create(
+    createChannelDto: ChannelType,
+    userData: { username?: string; user_id?: string },
+  ) {
+    // const user = await this.myProfile(userData);
+    const iHaveAccess = await this.guild
+      .findOne({
+        owner_id: userData.user_id,
+        _id: createChannelDto.parent_id,
+      })
+      .lean(true)
+      .exec();
+    console.log(iHaveAccess, userData.user_id);
+    if (iHaveAccess) {
+      const createdPerson = new this.channel(createChannelDto);
+      return createdPerson.save();
+    } else {
+      return false;
+    }
   }
 
   async findAll(): Promise<ChannelType[]> {
-    return this.model.find().exec();
+    return this.channel.find().exec();
   }
   async findGuilds(ids: string[]): Promise<ChannelType[]> {
-    const request = await this.model.find().where('_id').in(ids).lean().exec();
-    return request.map(function (v) {
-      v['id'] = v['_id'];
-      delete v['_id'];
-      delete v['__v'];
-      return v;
-    });
+    const request = await this.channel
+      .find()
+      .where('_id')
+      .in(ids)
+      .lean()
+      .exec();
+    return request;
   }
 
   async update(props: ChannelType & { id: string }) {
     const { id, ...person } = props;
-    return this.model.updateOne(
+    return this.channel.updateOne(
       {
         _id: id,
       },

@@ -9,15 +9,18 @@ import {
   UsersGuildsSchema,
 } from '@/users_guilds/users_guilds.schema';
 import { UserGuildsService } from '@/users_guilds/users_guilds.service';
+import { Channels, ChannelsSchema } from '@/channels/channels.schema';
+import { ChannelService } from '@/channels/channels.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Guild.name, schema: GuildSchema },
+      { name: Channels.name, schema: ChannelsSchema },
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
     ]),
   ],
   controllers: [GuildController],
-  providers: [GuildService, UserGuildsService],
+  providers: [GuildService, UserGuildsService, ChannelService],
 })
 export class GuildModule {}

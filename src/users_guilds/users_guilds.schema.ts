@@ -11,10 +11,10 @@ export class UsersGuilds extends Document implements UsersGuildsType {
   user_id: string;
 
   @Prop({
-    type: [String],
+    type: String,
     required: true,
   })
-  chats: string[];
+  guild_id: string;
 }
 
 export const UsersGuildsSchema = SchemaFactory.createForClass(UsersGuilds);

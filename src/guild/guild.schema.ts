@@ -162,7 +162,14 @@ export enum VERIFICATION_LEVEL {
 }
 
 @Schema({
-  strict: true,
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+    },
+  },
 })
 export class Guild extends Document implements GuildType {
   @Prop({

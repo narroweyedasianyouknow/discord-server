@@ -1,7 +1,7 @@
 import { UserType } from '@/person/person';
 
 export type ChannelType = {
-  type: CHANNEL_TYPES_LIST; //	the type of channel
+  channel_type: CHANNEL_TYPES_LIST; //	the type of channel
   guild_id?: string; //	string	the id of the guild (may be missing for some channel objects received over gateway guild dispatches)
   position?: number; //	sorting position of the channel
   permission_overwrites?: OverwriteType[]; // of overwrite objects	explicit permission overwrites for members and roles

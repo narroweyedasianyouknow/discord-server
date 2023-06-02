@@ -4,7 +4,7 @@ import { sign } from 'jsonwebtoken';
 
 import { PersonService } from './person.service';
 import type { Request, Response } from 'express';
-import { MONGOOSE_ERRORS } from 'src/errorCodes';
+import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
 import { useMe } from '@/funcs/useMe';
 
 @Controller('person')

@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import errorCodes from 'src/errorCodes';
+import errorCodes from '@/utils/errorCodes';
 
 const missingArgs = errorCodes['A-02'];
 const invalidArgs = errorCodes['A-03'];

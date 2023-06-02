@@ -1,23 +1,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-
-import {
-  UsersGuilds,
-  UsersGuildsSchema,
-} from '@/users_guilds/users_guilds.schema';
-import { UserGuildsService } from '@/users_guilds/users_guilds.service';
 import { ChannelsController } from './channels.controller';
+import { ChannelService } from './channels.service';
 import { Channels, ChannelsSchema } from './channels.schema';
-// import { ChannelService } from './channels.service';
+import { GuildService } from '@/guild/guild.service';
+import { Guild, GuildSchema } from '@/guild/guild.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: UsersGuilds.name, schema: UsersGuildsSchema },
+      { name: Guild.name, schema: GuildSchema },
       { name: Channels.name, schema: ChannelsSchema },
     ]),
   ],
   controllers: [ChannelsController],
-  providers: [UserGuildsService],
+  providers: [ChannelService, GuildService],
 })
 export class ChannelsModule {}

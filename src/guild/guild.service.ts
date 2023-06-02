@@ -3,14 +3,27 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Guild } from './guild.schema';
 import type { GuildType } from './guild.schema';
 import type { Model } from 'mongoose';
+import { Channels } from '@/channels/channels.schema';
+import { CHANNEL_TYPES_LIST, ChannelType } from '@/channels/channels';
 
 @Injectable()
 export class GuildService {
-  constructor(@InjectModel(Guild.name) private personModel: Model<Guild>) {}
+  constructor(
+    @InjectModel(Guild.name) private personModel: Model<Guild>,
+    @InjectModel(Channels.name) private channel: Model<Channels>,
+  ) {}
 
   async create(createPersonDto: GuildType) {
-    const createdPerson = new this.personModel(createPersonDto);
-    return createdPerson.save();
+    const createdGuild = new this.personModel(createPersonDto);
+    const channels: ChannelType[] = [
+      {
+        channel_type: CHANNEL_TYPES_LIST.GUILD_CATEGORY,
+        name: 'text channel',
+        parent_id: createdGuild.id,
+      },
+    ];
+    await new this.channel(channels).save();
+    return createdGuild.save();
   }
 
   async findAll(): Promise<GuildType[]> {

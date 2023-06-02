@@ -16,119 +16,128 @@ enum CHANNEL_TYPES_LIST {
   GUILD_DIRECTORY = 14, //	the channel in a hub containing the listed servers
   GUILD_FORUM = 15, //	Channel that can only contain threads
 }
-@Schema()
+@Schema({
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+    },
+  },
+})
 export class Channels extends Document {
   @Prop({
     type: Number,
   })
-  type: CHANNEL_TYPES_LIST;
+  channel_type: number;
 
   @Prop({
     type: String,
   })
-  guild_id?: string | undefined;
+  guild_id?: string;
 
   @Prop({
     type: Number,
   })
-  position?: number | undefined;
-  // permission_overwrites?: OverwriteType[] | undefined;
+  position?: number;
+  // permission_overwrites?: OverwriteType[];
 
   @Prop({
     type: String,
   })
-  name?: string | undefined;
+  name?: string;
 
   @Prop({
     type: String,
   })
-  topic?: string | undefined;
+  topic?: string;
 
   @Prop({
     type: Boolean,
   })
-  nsfw?: boolean | undefined;
+  nsfw?: boolean;
 
   @Prop({
     type: String,
   })
-  last_message_id?: string | undefined;
+  last_message_id?: string;
 
   @Prop({
     type: Number,
   })
-  bitrate?: number | undefined;
+  bitrate?: number;
 
   @Prop({
     type: Number,
   })
-  user_limit?: number | undefined;
+  user_limit?: number;
 
   @Prop({
     type: Number,
   })
-  rate_limit_per_user?: number | undefined;
+  rate_limit_per_user?: number;
 
-  // recipients?: UserType[] | undefined;
+  // recipients?: UserType[];
   @Prop({
     type: String,
   })
-  icon?: string | undefined;
-
-  @Prop({
-    type: String,
-  })
-  owner_id?: string | undefined;
+  icon?: string;
 
   @Prop({
     type: String,
   })
-  parent_id?: string | undefined;
-
-  @Prop({
-    type: Number,
-  })
-  last_pin_timestamp?: number | undefined;
+  owner_id?: string;
 
   @Prop({
     type: String,
   })
-  rtc_region?: string | undefined;
+  parent_id?: string;
 
   @Prop({
     type: Number,
   })
-  video_quality_mode?: number | undefined;
-
-  @Prop({
-    type: Number,
-  })
-  message_count?: number | undefined;
-
-  @Prop({
-    type: Number,
-  })
-  member_count?: number | undefined;
-
-  @Prop({
-    type: Number,
-  })
-  default_auto_archive_duration?: number | undefined;
+  last_pin_timestamp?: number;
 
   @Prop({
     type: String,
   })
-  permissions?: string | undefined;
+  rtc_region?: string;
 
   @Prop({
     type: Number,
   })
-  flags?: number | undefined;
+  video_quality_mode?: number;
 
   @Prop({
     type: Number,
   })
-  total_message_sent?: number | undefined;
+  message_count?: number;
+
+  @Prop({
+    type: Number,
+  })
+  member_count?: number;
+
+  @Prop({
+    type: Number,
+  })
+  default_auto_archive_duration?: number;
+
+  @Prop({
+    type: String,
+  })
+  permissions?: string;
+
+  @Prop({
+    type: Number,
+  })
+  flags?: number;
+
+  @Prop({
+    type: Number,
+  })
+  total_message_sent?: number;
 }
 
 export const ChannelsSchema = SchemaFactory.createForClass(Channels);

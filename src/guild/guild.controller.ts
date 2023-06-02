@@ -12,8 +12,8 @@ import {
 import { GuildService } from './guild.service';
 import type { GuildType } from './guild.schema';
 import type { Request, Response } from 'express';
-import { MONGOOSE_ERRORS } from 'src/errorCodes';
-import { useMe } from 'src/funcs/useMe';
+import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
+import { useMe } from '@/funcs/useMe';
 import { UserGuildsService } from '@/users_guilds/users_guilds.service';
 
 @Controller('guild')
@@ -51,6 +51,13 @@ export class GuildController {
     premium_progress_bar_enabled: false,
   };
 
+  @Get('')
+  async getGuild(@Res() response: Response) {
+    response.status(200).send({
+      response: true,
+    });
+  }
+
   @Post('/create')
   async create(
     @Req()
@@ -77,9 +84,9 @@ export class GuildController {
       .create(value)
       .then((res) => {
         const _id = res.id;
-        this.userGuilds.update({
+        this.userGuilds.create({
           user_id: user.user_id,
-          chats: [_id],
+          guild_id: _id,
         });
         response.status(201).send({
           response: { ...value, id: _id },
