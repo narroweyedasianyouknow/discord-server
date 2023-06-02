@@ -1,6 +1,7 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { Injectable } from '@nestjs/common';
 import { verify, sign } from 'jsonwebtoken';
+import type { NestMiddleware } from '@nestjs/common';
+import type { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -19,15 +20,15 @@ export class LoggerMiddleware implements NestMiddleware {
       const expiryDate = new Date();
       expiryDate.setMonth(expiryDate.getMonth() + 1);
       if (typeof decoded !== 'string') {
-        sign(
-          {
-            login: decoded?.login,
-          },
-          process.env.SECRET,
-          {
-            expiresIn: +expiryDate,
-          },
-        );
+        // sign(
+        //   {
+        //     login: decoded?.login,
+        //   },
+        //   process.env.SECRET,
+        //   {
+        //     expiresIn: +expiryDate,
+        //   },
+        // );
       } else {
         res.status(500).send('Server Error!');
         return;

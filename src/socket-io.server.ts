@@ -1,16 +1,32 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { PostgreSQL } from './postgres';
 import { verify } from 'jsonwebtoken';
+import { Server } from 'socket.io';
 import { SocketStore } from './SocketStore';
+import { PostgreSQL } from './postgres';
+import type { Socket } from 'socket.io';
+import { InjectModel } from '@nestjs/mongoose';
+import { Guild } from './guild/guild.schema';
+import { Model } from 'mongoose';
+import { UsersGuilds } from './users_guilds/users_guilds.schema';
 
 @Injectable()
 export class SocketIoServer {
   private server: Server;
   constructor(
-    @Inject(PostgreSQL) private db: PostgreSQL,
+    @InjectModel(UsersGuilds.name) private usersGuildsModel: Model<UsersGuilds>,
     @Inject(SocketStore) private readonly socketStore: SocketStore,
   ) {}
+
+  async findMyGuilds(user_id: string): Promise<string[]> {
+    const list = await this.usersGuildsModel
+      .findOne({
+        user_id: user_id,
+      })
+      .lean()
+      .exec();
+    if (!list) return [];
+    return list.chats;
+  }
   configure(server: any): void {
     this.server = new Server(server, {
       cors: {
@@ -27,19 +43,11 @@ export class SocketIoServer {
             process.env.SECRET,
           );
 
-          if (typeof decoded !== 'string' && 'login' in decoded) {
-            this.socketStore.addUserSocket(decoded.login, socket);
-            this.db
-              .select<{
-                id: string;
-                chats: string[];
-              }>({
-                table: 'person',
-                condition: `WHERE login = '${decoded.login}'`,
-              })
-              .then((result) => {
-                socket.join(result.rows[0].chats);
-              });
+          if (typeof decoded !== 'string' && 'user_id' in decoded) {
+            this.socketStore.addUserSocket(decoded.user_id, socket);
+            this.findMyGuilds(decoded.user_id).then((result) => {
+              socket.join(result);
+            });
           }
         } catch (error) {
           socket.disconnect();

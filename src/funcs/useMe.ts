@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
+import type { Request, Response } from 'express';
 
-export const useMe = function (req: Request, res: Response) {
+export const useMe = function (req: Request, ignoreRes?: Response) {
   const authorization = req.cookies?.token;
   if (authorization && process.env.SECRET) {
     let decoded: any;
@@ -9,9 +9,18 @@ export const useMe = function (req: Request, res: Response) {
       decoded = verify(authorization, process.env.SECRET);
     } catch (e) {
       console.log('ERROR::: DECODED VALUE ERROR');
-      return res.status(401).send('unauthorized');
+      return {
+        login: undefined,
+        user_id: undefined,
+      };
     }
-    return decoded?.login;
+    return {
+      login: decoded?.login,
+      user_id: decoded?.user_id,
+    };
   }
-  return undefined;
+  return {
+    login: undefined,
+    user_id: undefined,
+  };
 };

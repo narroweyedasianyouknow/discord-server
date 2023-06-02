@@ -2,7 +2,10 @@ export const PostgresError = {
   unique_violation: '23505',
   undefined_column: '42703',
 };
-
+export const MONGOOSE_ERRORS = {
+  11000: (keyValue: Record<string, any>) =>
+    `${Object.keys(keyValue).join(', ')} duplicated key`,
+};
 export default {
   'A-01': {
     err: 'Something got wrong! Please, try again!',

@@ -1,6 +1,7 @@
-import { Client, QueryResult } from 'pg';
 import { Injectable } from '@nestjs/common';
-import { DB_TABLES } from './tables';
+import { Client } from 'pg';
+import type { DB_TABLES } from './tables';
+import type { QueryResult } from 'pg';
 
 @Injectable()
 export class PostgreSQL {

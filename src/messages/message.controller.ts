@@ -1,9 +1,9 @@
-import { Controller, Post, Req, Res, Put, Inject, Get } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { IMessage } from './message';
+import { Controller, Post, Req, Res, Put, Inject } from '@nestjs/common';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import type { IMessage } from './message';
+import type { Request, Response } from 'express';
 import { fieldsChecker } from 'src/funcs/fieldChecker';
 import { useMe } from 'src/funcs/useMe';
-import { IoAdapter } from '@nestjs/platform-socket.io';
 import { PostgreSQL } from 'src/postgres';
 import { SocketIoServer } from 'src/socket-io.server';
 
@@ -29,8 +29,6 @@ export class MessageController extends IoAdapter {
     @Res() response: Response,
   ) {
     const { id } = request.body;
-    const me = useMe(request, response);
-    if (typeof me === 'object') me();
     const isOk = fieldsChecker(
       request.body,
       {
@@ -68,7 +66,6 @@ export class MessageController extends IoAdapter {
   ) {
     const { id, subject_id, text_content, ts } = request.body;
     const me = useMe(request, response);
-    if (typeof me === 'object') me();
     const isOk = fieldsChecker(
       request.body,
       {

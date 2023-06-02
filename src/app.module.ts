@@ -1,29 +1,48 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { LoggerMiddleware } from './logger.middleware';
-import { ConfigModule } from '@nestjs/config';
-import { AuthController } from './auth/auth.controller';
-import { FoldersController } from './folders/folders.controller';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { ProfileController } from './profile/profile.controller';
-import { PostgreSQL } from './postgres';
-import { SocketIoServer } from './socket-io.server';
-import { MessageController } from './messages/message.controller';
-import { ChatsController } from './chats/chats.controller';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { SocketStore } from './SocketStore';
-const controllers = [
-  FoldersController,
-  ProfileController,
-  MessageController,
-  ChatsController,
-];
+import { AvatarController } from './avatar/avatar.controller';
+import { GuildModule } from './guild/guild.module';
+import { LoggerMiddleware } from './logger.middleware';
+import { MessageController } from './messages/message.controller';
+import { multerOptions } from './multer';
+import { PersonModule } from './person/person.module';
+import { PostgreSQL } from './postgres';
+import { UsersGuildsModule } from './users_guilds/users_guilds.module';
+import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { SocketIOModule } from './socket-io.module';
+import {
+  UsersGuilds,
+  UsersGuildsSchema,
+} from './users_guilds/users_guilds.schema';
+import { SocketIoServer } from './socket-io.server';
+import { ChannelsModule } from './channels/channels.module';
+
+const controllers = [MessageController];
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'static') }),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017', {
+      useUnifiedTopology: true,
+      autoIndex: true,
+      dbName: 'discord',
+    }),
+    MongooseModule.forFeature([
+      { name: UsersGuilds.name, schema: UsersGuildsSchema },
+    ]),
+    MulterModule.register(multerOptions),
+    PersonModule,
+    GuildModule,
+    UsersGuildsModule,
+    ChannelsModule,
   ],
-  controllers: [AuthController, ...controllers],
-  providers: [SocketIoServer, SocketStore, PostgreSQL],
+  controllers: [...controllers, AvatarController],
+  providers: [PostgreSQL, SocketIoServer, SocketStore],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
