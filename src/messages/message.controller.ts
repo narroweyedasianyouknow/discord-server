@@ -6,16 +6,29 @@ import { fieldsChecker } from 'src/funcs/fieldChecker';
 import { useMe } from 'src/funcs/useMe';
 import { PostgreSQL } from 'src/postgres';
 import { SocketIoServer } from 'src/socket-io.server';
+import { MessagesType } from './messages.schema';
+import { MessagesService } from './messages.service';
 
-@Controller('message')
-export class MessageController extends IoAdapter {
+@Controller('messages')
+export class MessagesController {
   constructor(
-    @Inject(PostgreSQL) private db: PostgreSQL,
+    @Inject(MessagesService) private messages: MessagesService,
     @Inject(SocketIoServer) private socketServer: SocketIoServer,
-  ) {
-    super();
-  }
+  ) {}
 
+  private defaultMessage = {
+    channel_id: '',
+    author: undefined,
+    content: '',
+    timestamp: 0,
+    tts: false,
+    mention_everyone: false,
+    mentions: [],
+    mention_roles: [],
+    attachments: [],
+    pinned: false,
+    type: 0,
+  };
   @Post('get')
   async getMessages(
     @Req()
@@ -40,107 +53,44 @@ export class MessageController extends IoAdapter {
       return;
     }
 
-    this.db
-      .select({
-        table: 'message',
-        condition: `WHERE subject_id = '${id}'`,
-      })
-      .then((result) => {
-        response.status(200).send({
-          response: result.rows,
-        });
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
+    // this.db
+    //   .select({
+    //     table: 'message',
+    //     condition: `WHERE subject_id = '${id}'`,
+    //   })
+    //   .then((result) => {
+    //     response.status(200).send({
+    //       response: result.rows,
+    //     });
+    //   })
+    //   .catch((err) => {
+    //     response.status(500).send({
+    //       error: err.stack,
+    //       response: false,
+    //     });
+    //   });
   }
 
   @Post()
   async addMessage(
     @Req()
-    request: Request<any, any, IMessage>,
+    request: Request<any, any, MessagesType>,
     @Res() response: Response,
   ) {
-    const { id, subject_id, text_content, ts } = request.body;
-    const me = useMe(request, response);
-    const isOk = fieldsChecker(
-      request.body,
-      {
-        id: 'string',
-        subject_id: 'string',
-        text_content: 'string',
-        ts: 'number',
-      },
-      response,
-    );
-    if (!isOk) {
-      return;
-    }
-
-    const values = 'id, subject_id, text_content, user_id, user_name, ts';
-
-    this.db
-      .insert({
-        table: 'message',
-        text: `(${values}) VALUES($1, $2, $3, $4, $5, $6)`,
-        values: [id, subject_id, text_content, me, me, ts],
-      })
-      .then(() => {
-        this.socketServer.getServer().to(subject_id).emit('add-message', {
-          id,
-          subject_id,
-          text_content,
-          user_id: me,
-          user_name: me,
-          ts,
-        });
-        response.status(200).send({
-          response: true,
-        });
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
-  }
-  @Put()
-  async edit(
-    @Req()
-    request: Request<any, any, IMessage>,
-    @Res() response: Response,
-  ) {
-    const { id } = request.body;
-    const me = useMe(request, response);
-    const isOk = fieldsChecker(
-      request.body,
-      {
-        id: 'number',
-      },
-      response,
-    );
-    if (!isOk) {
-      return;
-    }
-
-    const body = {
-      name: request.body?.text_content,
+    const me = useMe(request);
+    const message = {
+      ...this.defaultMessage,
+      ...request.body,
+      author: me.user_id,
     };
-
-    this.db
-      .update({
-        table: 'message',
-        text: `SET ${this.db.setByKeys(Object.values(body))}`,
-        condition: `WHERE id = ${id} AND created_by = '${me}'`,
-      })
-      .then(() => {
-        response.status(200).send({
-          response: true,
-        });
+    this.messages
+      .create(message)
+      .then((res) => {
+        this.socketServer
+          .getServer()
+          .to(message.channel_id)
+          .emit('add-message', res);
+        response.status(201).send(res);
       })
       .catch((err) => {
         response.status(500).send({
@@ -149,4 +99,45 @@ export class MessageController extends IoAdapter {
         });
       });
   }
+  // @Put()
+  // async edit(
+  //   @Req()
+  //   request: Request<any, any, IMessage>,
+  //   @Res() response: Response,
+  // ) {
+  //   const { id } = request.body;
+  //   const me = useMe(request);
+  //   const isOk = fieldsChecker(
+  //     request.body,
+  //     {
+  //       id: 'number',
+  //     },
+  //     response,
+  //   );
+  //   if (!isOk) {
+  //     return;
+  //   }
+
+  //   const body = {
+  //     name: request.body?.text_content,
+  //   };
+
+  //   this.db
+  //     .update({
+  //       table: 'message',
+  //       text: `SET ${this.db.setByKeys(Object.values(body))}`,
+  //       condition: `WHERE id = ${id} AND created_by = '${me}'`,
+  //     })
+  //     .then(() => {
+  //       response.status(200).send({
+  //         response: true,
+  //       });
+  //     })
+  //     .catch((err) => {
+  //       response.status(500).send({
+  //         error: err.stack,
+  //         response: false,
+  //       });
+  //     });
+  // }
 }

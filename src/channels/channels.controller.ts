@@ -1,6 +1,15 @@
 import { useMe } from '@/funcs/useMe';
 // import { UserGuildsService } from '@/users_guilds/users_guilds.service';
-import { Controller, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ChannelType } from './channels';
 import { CHANNEL_TYPES_LIST } from './channels';
@@ -38,19 +47,43 @@ export class ChannelsController {
     total_message_sent: 0, //		number of messages ever sent in a thread, it's similar to message_count on message creation, but will not decrement the number when a message is deleted};
   };
 
-  @Post()
+  @Post('create')
   async create(
     @Req() request: Request<any, any, ChannelType>,
     @Res() response: Response,
   ) {
     const user = useMe(request);
     this.channel
-      .create({ ...this.defaultValue, ...request.body }, user)
+      .create({ ...this.defaultValue, ...request.body }, user.user_id)
       .then((res) => {
-        response.status(201).send(res);
+        response.status(201).send({
+          response: res,
+        });
       })
       .catch((err) => {
-        response.status(400).send(err);
+        response.status(400).send({
+          response: err,
+        });
+      });
+  }
+  @Put(':parent_id/update')
+  async update(
+    @Param('parent_id') parent_id: string,
+    @Req() request: Request<any, any, ChannelType & { id: string }>,
+    @Res() response: Response,
+  ) {
+    const user = useMe(request);
+    this.channel
+      .update(parent_id, request.body, user.user_id)
+      .then((res) => {
+        response.status(201).send({
+          response: res,
+        });
+      })
+      .catch((err) => {
+        response.status(400).send({
+          response: err,
+        });
       });
   }
 }

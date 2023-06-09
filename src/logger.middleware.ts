@@ -35,7 +35,6 @@ export class LoggerMiddleware implements NestMiddleware {
       }
       return next();
     } catch (e) {
-      console.log(e);
       return next(new Error('Not authorized'));
     }
   }

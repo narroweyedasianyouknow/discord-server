@@ -23,7 +23,6 @@ export class PersonService {
       if (response) {
         response['id'] = response['_id'];
         delete response['_id'];
-        delete response['password'];
         delete response['__v'];
       }
       return response;

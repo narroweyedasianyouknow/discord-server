@@ -39,7 +39,6 @@ export default class UsersGuildsController {
               response: MONGOOSE_ERRORS[errCode](err?.keyValue),
             });
           } else {
-            console.log(err?.code);
             response.status(401).send({
               response: err?.message,
             });

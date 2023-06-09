@@ -7,21 +7,24 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { SocketStore } from './SocketStore';
 import { AvatarController } from './avatar/avatar.controller';
 import { GuildModule } from './guild/guild.module';
-import { LoggerMiddleware } from './logger.middleware';
-import { MessageController } from './messages/message.controller';
 import { multerOptions } from './multer';
 import { PersonModule } from './person/person.module';
 import { PostgreSQL } from './postgres';
 import { UsersGuildsModule } from './users_guilds/users_guilds.module';
-import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import {
   UsersGuilds,
   UsersGuildsSchema,
 } from './users_guilds/users_guilds.schema';
 import { SocketIoServer } from './socket-io.server';
 import { ChannelsModule } from './channels/channels.module';
+import AppController from './app.controller';
+import { MessageModule } from './messages/message.module';
+import {
+  UsersChannels,
+  UsersChannelsSchema,
+} from './users_channels/users_channels.schema';
 
-const controllers = [MessageController];
+// const controllers = [];
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,18 +36,21 @@ const controllers = [MessageController];
     }),
     MongooseModule.forFeature([
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
+      { name: UsersChannels.name, schema: UsersChannelsSchema },
     ]),
     MulterModule.register(multerOptions),
     PersonModule,
     GuildModule,
     UsersGuildsModule,
     ChannelsModule,
+    MessageModule,
   ],
-  controllers: [...controllers, AvatarController],
+  controllers: [AvatarController, AppController],
   providers: [PostgreSQL, SocketIoServer, SocketStore],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes(...controllers);
-  }
-}
+export class AppModule {}
+// export class AppModule implements NestModule {
+// configure(consumer: MiddlewareConsumer) {
+//   consumer.apply(LoggerMiddleware).forRoutes(...controllers);
+// }
+// }

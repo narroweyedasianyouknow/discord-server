@@ -1,5 +1,4 @@
 import { Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   DEFAULT_MESSAGE_NOTIFICATIONS_LEVEL,
@@ -99,12 +98,12 @@ export class GuildController {
           keyValue: Record<string, string>;
         }) => {
           const errCode = err.code;
+          console.log(err?.message);
           if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
             response.status(401).send({
               response: MONGOOSE_ERRORS[errCode](err?.keyValue),
             });
           } else {
-            console.log(err?.code);
             response.status(401).send({
               response: err?.message,
             });
@@ -122,7 +121,6 @@ export class GuildController {
     this.userGuilds
       .findMyGuilds(user.user_id)
       .then((res) => {
-        console.log(res);
         this.guild
           .findGuilds(res)
           .then((v) => {
@@ -142,7 +140,6 @@ export class GuildController {
                   response: MONGOOSE_ERRORS[errCode](err?.keyValue),
                 });
               } else {
-                console.log(err?.code);
                 response.status(401).send({
                   response: err?.message,
                 });

@@ -1,23 +1,19 @@
 import { Test } from '@nestjs/testing';
-import { GuildController } from './guild.controller';
 import type { TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Channels, ChannelsSchema } from '@/channels/channels.schema';
-import {
-  UsersGuilds,
-  UsersGuildsSchema,
-} from '@/users_guilds/users_guilds.schema';
-import { Guild, GuildSchema } from './guild.schema';
 import { GuildModule } from './guild.module';
+import * as cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
 
 describe('GuildController', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [],
+    dotenv.config();
+
+    const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         MongooseModule.forRoot('mongodb://127.0.0.1:27017', {
           useUnifiedTopology: true,
@@ -27,16 +23,35 @@ describe('GuildController', () => {
         GuildModule,
       ],
     }).compile();
-    app = module.createNestApplication();
+
+    app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     await app.init();
   });
 
-  it('should send POST request with request body', async () => {
+  it('try to create guild', async () => {
+    await request(app.getHttpServer())
+      .post('/guild/create')
+      .set(
+        'Cookie',
+        process.env.DEV_TOKEN ? [`token=${process.env.DEV_TOKEN}`] : [],
+      )
+      .send({
+        name: 'helloworld',
+      })
+      .expect(201);
+  });
+  it('try to get guilds array', async () => {
     const response = await request(app.getHttpServer())
-      .get('/guild')
-      // .send({ key: 'value' }) // request body
+      .get('/guild/my')
+      .set(
+        'Cookie',
+        process.env.DEV_TOKEN ? [`token=${process.env.DEV_TOKEN}`] : [],
+      )
       .expect(200);
-    expect(response.body).toEqual({ response: true });
+    expect(response.body).toEqual({
+      response: expect.any(Array),
+    });
   });
   afterAll(async () => {
     await app.close();

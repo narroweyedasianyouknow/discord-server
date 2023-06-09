@@ -2,30 +2,29 @@ import { Inject, Injectable } from '@nestjs/common';
 import { verify } from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { SocketStore } from './SocketStore';
-import { PostgreSQL } from './postgres';
 import type { Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
-import { Guild } from './guild/guild.schema';
 import { Model } from 'mongoose';
-import { UsersGuilds } from './users_guilds/users_guilds.schema';
+import { UsersChannels } from './users_channels/users_channels.schema';
 
 @Injectable()
 export class SocketIoServer {
   private server: Server;
   constructor(
-    @InjectModel(UsersGuilds.name) private usersGuildsModel: Model<UsersGuilds>,
+    @InjectModel(UsersChannels.name)
+    private usersChannelsModel: Model<UsersChannels>,
     @Inject(SocketStore) private readonly socketStore: SocketStore,
   ) {}
 
-  async findMyGuilds(user_id: string): Promise<string[]> {
-    const list = await this.usersGuildsModel
-      .findOne({
+  async findMyChannels(user_id: string): Promise<string[]> {
+    const list = await this.usersChannelsModel
+      .find({
         user_id: user_id,
       })
       .lean()
       .exec();
     if (!list) return [];
-    return list.chats;
+    return list.map((v) => v.channel_id);
   }
   configure(server: any): void {
     this.server = new Server(server, {
@@ -45,7 +44,7 @@ export class SocketIoServer {
 
           if (typeof decoded !== 'string' && 'user_id' in decoded) {
             this.socketStore.addUserSocket(decoded.user_id, socket);
-            this.findMyGuilds(decoded.user_id).then((result) => {
+            this.findMyChannels(decoded.user_id).then((result) => {
               socket.join(result);
             });
           }

@@ -4,30 +4,35 @@ import type { Model } from 'mongoose';
 import { Channels } from './channels.schema';
 import { ChannelType } from './channels';
 import { Guild } from '@/guild/guild.schema';
+import { UsersChannels } from '@/users_channels/users_channels.schema';
 
 @Injectable()
 export class ChannelService {
   constructor(
     @InjectModel(Guild.name) private guild: Model<Guild>,
     @InjectModel(Channels.name) private channel: Model<Channels>,
+    @InjectModel(UsersChannels.name) private usersChannel: Model<UsersChannels>,
   ) {}
   // async myProfile(args: { username?: string; user_id?: string }) {
   //   return this.user.findOne(args).lean().exec();
   // }
 
-  async create(
-    createChannelDto: ChannelType,
-    userData: { username?: string; user_id?: string },
-  ) {
-    // const user = await this.myProfile(userData);
+  async checkAccess(data: { id?: string; owner_id?: string }) {
     const iHaveAccess = await this.guild
       .findOne({
-        owner_id: userData.user_id,
-        _id: createChannelDto.parent_id,
+        owner_id: data.owner_id,
+        _id: data.id,
       })
       .lean(true)
       .exec();
-    console.log(iHaveAccess, userData.user_id);
+    return iHaveAccess;
+  }
+  async create(createChannelDto: ChannelType, user_id: string) {
+    // const user = await this.myProfile(userData);
+    const iHaveAccess = await this.checkAccess({
+      owner_id: user_id,
+      id: createChannelDto.parent_id,
+    });
     if (iHaveAccess) {
       const createdPerson = new this.channel(createChannelDto);
       return createdPerson.save();
@@ -49,13 +54,15 @@ export class ChannelService {
     return request;
   }
 
-  async update(props: ChannelType & { id: string }) {
-    const { id, ...person } = props;
-    return this.channel.updateOne(
-      {
-        _id: id,
-      },
-      person,
-    );
+  async update(id: string, updateData: ChannelType, user_id: string) {
+    const iHaveAccess = await this.checkAccess({
+      owner_id: user_id,
+      id: id,
+    });
+    if (iHaveAccess) {
+      return this.channel.findOneAndUpdate({ _id: id }, updateData);
+    } else {
+      return false;
+    }
   }
 }

@@ -109,7 +109,6 @@ export class PersonController {
                 response: MONGOOSE_ERRORS[errCode](err?.keyValue),
               });
             } else {
-              console.log(err?.code);
               response.status(401).send({
                 response: err?.message,
               });
@@ -138,17 +137,18 @@ export class PersonController {
     this.person
       .getUser({ email, username })
       .then((res) => {
+        if (!res) throw Error("Couldn't find user ");
+        const { password: resPassword, ...user } = res;
         const secretKey = process.env.SECRET;
         if (secretKey && res) {
-          const [hashed, salt] = String(res.password).split('.');
+          const [hashed, salt] = String(resPassword).split('.');
           scrypt(password, salt, 82, (scryptError, derivedKey) => {
             const isValid = hashed === derivedKey.toString('hex');
-            console.log(derivedKey.toString('hex'), res.password);
             if (isValid) {
               const token = sign(
                 {
                   login: res.username,
-                  user_id: res._id,
+                  user_id: res.id,
                 },
                 secretKey,
                 {
@@ -159,7 +159,7 @@ export class PersonController {
                 expires: this.expiresAge(),
               });
               response.status(200).send({
-                response: true,
+                response: user,
               });
             } else {
               response.status(400).send({
@@ -185,7 +185,6 @@ export class PersonController {
               response: MONGOOSE_ERRORS[errCode](err?.keyValue),
             });
           } else {
-            console.log(err?.code);
             response.status(401).send({
               response: err?.message,
             });
@@ -203,14 +202,15 @@ export class PersonController {
     this.person
       .getUser({ username: me.login })
       .then((res) => {
+        if (!res) throw Error("Couldn't find user");
+        const { password, ...user } = res;
         if (!res) {
           return response.status(401).send({
             response: false,
           });
         }
-        // const { _id, ...user } = res;
         response.status(200).send({
-          response: res,
+          response: user,
         });
       })
       .catch(
@@ -225,7 +225,6 @@ export class PersonController {
               response: MONGOOSE_ERRORS[errCode](err?.keyValue),
             });
           } else {
-            console.log(err?.code);
             response.status(401).send({
               response: err?.message,
             });
