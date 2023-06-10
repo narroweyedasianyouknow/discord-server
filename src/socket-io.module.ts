@@ -6,11 +6,13 @@ import {
   UsersGuilds,
   UsersGuildsSchema,
 } from './users_guilds/users_guilds.schema';
+import { Channels, ChannelsSchema } from './channels/channels.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
+      { name: Channels.name, schema: ChannelsSchema },
     ]),
   ],
   providers: [SocketIoServer, SocketStore],

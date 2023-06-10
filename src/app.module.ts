@@ -19,10 +19,7 @@ import { SocketIoServer } from './socket-io.server';
 import { ChannelsModule } from './channels/channels.module';
 import AppController from './app.controller';
 import { MessageModule } from './messages/message.module';
-import {
-  UsersChannels,
-  UsersChannelsSchema,
-} from './users_channels/users_channels.schema';
+import { Channels, ChannelsSchema } from './channels/channels.schema';
 
 // const controllers = [];
 @Module({
@@ -36,7 +33,7 @@ import {
     }),
     MongooseModule.forFeature([
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
-      { name: UsersChannels.name, schema: UsersChannelsSchema },
+      { name: Channels.name, schema: ChannelsSchema },
     ]),
     MulterModule.register(multerOptions),
     PersonModule,

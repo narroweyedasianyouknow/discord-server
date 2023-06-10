@@ -13,7 +13,10 @@ import type { GuildType } from './guild.schema';
 import type { Request, Response } from 'express';
 import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
 import { useMe } from '@/funcs/useMe';
-import { UserGuildsService } from '@/users_guilds/users_guilds.service';
+import {
+  DEFAULT_PERMISSION,
+  UserGuildsService,
+} from '@/users_guilds/users_guilds.service';
 
 @Controller('guild')
 export class GuildController {
@@ -86,6 +89,7 @@ export class GuildController {
         this.userGuilds.create({
           user_id: user.user_id,
           guild_id: _id,
+          permissions: DEFAULT_PERMISSION,
         });
         response.status(201).send({
           response: { ...value, id: _id },

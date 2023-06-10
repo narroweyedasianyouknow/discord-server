@@ -1,258 +1,258 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 export type RolesType = {
-  name: string; //	role name
-  color: number; //	integer representation of hexadecimal color code
-  hoist: boolean; //	if this role is pinned in the user listing
-  icon?: string; //	role icon hash
-  unicode_emoji?: string; //	role unicode emoji
-  position: number; //	position of this role
-  permissions: Permissions; //	permission bit set
-  managed: boolean; //	whether this role is managed by an integration
-  mentionable: boolean; //	whether this role is mentionable
-  tags?: RoleTagType; //	role tags object	the tags this role has
+  name: string; // role name
+  color: number; // integer representation of hexadecimal color code
+  hoist: boolean; // if this role is pinned in the user listing
+  icon?: string; // role icon hash
+  unicode_emoji?: string; // role unicode emoji
+  position: number; // position of this role
+  permissions: string; // permission bit set
+  managed: boolean; // whether this role is managed by an integration
+  mentionable: boolean; // whether this role is mentionable
+  tags?: RoleTagType; // role tags object the tags this role has
 };
 
-export enum Permissions {
+export enum PERMISSIONS_LIST {
   /**
-   * @description Allows creation of instant invites	T, V, S
+   * @description Allows creation of instant invites T, V, S
    */
-  CREATE_INSTANT_INVITE = 1 << 0,
+  CREATE_INSTANT_INVITE = 0x0000000000000001,
 
   /**
    * @description Allows kicking members
    */
-  KICK_MEMBERS = 1 << 1,
+  KICK_MEMBERS = 0x0000000000000002,
 
   /**
-   * @description Allows banning members	 =
+   * @description Allows banning members  =
    */
-  BAN_MEMBERS = 1 << 2,
+  BAN_MEMBERS = 0x0000000000000004,
 
   /**
-   * @description Allows all permissions and bypasses channel permission overwrites	 =
+   * @description Allows all permissions and bypasses channel permission overwrites  =
    */
-  ADMINISTRATOR = 1 << 3,
+  ADMINISTRATOR = 0x0000000000000008,
 
   /**
-   * @description Allows management and editing of channels	T, V, S
+   * @description Allows management and editing of channels T, V, S
    */
-  MANAGE_CHANNELS = 1 << 4,
+  MANAGE_CHANNELS = 0x0000000000000010,
 
   /**
-   * @description Allows management and editing of the guild	 =
+   * @description Allows management and editing of the guild  =
    */
-  MANAGE_GUILD = 1 << 5,
+  MANAGE_GUILD = 0x0000000000000020,
 
   /**
-   * @description Allows for the addition of reactions to messages	T, V, S
+   * @description Allows for the addition of reactions to messages T, V, S
    */
-  ADD_REACTIONS = 1 << 6,
+  ADD_REACTIONS = 0x0000000000000040,
 
   /**
    * @description Allows for viewing of audit logs
    */
-  VIEW_AUDIT_LOG = 1 << 7,
+  VIEW_AUDIT_LOG = 0x0000000000000080,
 
   /**
-   * @description Allows for using priority speaker in a voice channel	V
+   * @description Allows for using priority speaker in a voice channel V
    */
-  PRIORITY_SPEAKER = 1 << 8,
+  PRIORITY_SPEAKER = 0x0000000000000100,
 
   /**
-   * @description Allows the user to go live	V, S
+   * @description Allows the user to go live V, S
    */
-  STREAM = 1 << 9,
+  STREAM = 0x0000000000000200,
 
   /**
-   * @description 	Allows guild members to view a channel,
-   * which includes reading messages in text channels and joining voice channels	T, V, S
+   * @description  Allows guild members to view a channel,
+   * which includes reading messages in text channels and joining voice channels T, V, S
    */
-  VIEW_CHANNEL = 1 << 10,
+  VIEW_CHANNEL = 0x0000000000000400,
 
   /**
    * @description Allows for sending messages in a channel
-   * and creating threads in a forum (does not allow sending messages in threads)	T, V, S
+   * and creating threads in a forum (does not allow sending messages in threads) T, V, S
    */
-  SEND_MESSAGES = 1 << 11,
+  SEND_MESSAGES = 0x0000000000000800,
 
   /**
-   * @description Allows for sending of /tts messages	T, V, S
+   * @description Allows for sending of /tts messages T, V, S
    */
-  SEND_TTS_MESSAGES = 1 << 12,
+  SEND_TTS_MESSAGES = 0x0000000000001000,
 
   /**
-   * @description Allows for deletion of other users messages	T, V, S
+   * @description Allows for deletion of other users messages T, V, S
    */
-  MANAGE_MESSAGES = 1 << 13,
+  MANAGE_MESSAGES = 0x0000000000002000,
 
   /**
-   * @description Links sent by users with this permission will be auto-embedded	T, V, S
+   * @description Links sent by users with this permission will be auto-embedded T, V, S
    */
-  EMBED_LINKS = 1 << 14,
+  EMBED_LINKS = 0x0000000000004000,
 
   /**
-   * @description Allows for uploading images and files	T, V, S
+   * @description Allows for uploading images and files T, V, S
    */
-  ATTACH_FILES = 1 << 15,
+  ATTACH_FILES = 0x0000000000008000,
 
   /**
-   * @description Allows for reading of message history	T, V, S
+   * @description Allows for reading of message history T, V, S
    */
-  READ_MESSAGE_HISTORY = 1 << 16,
+  READ_MESSAGE_HISTORY = 0x0000000000010000,
 
   /**
    * @description Allows for using the `@everyone` tag to notify all users in a channel,
-   * and the `@here` tag to notify all online users in a channel	T, V, S
+   * and the `@here` tag to notify all online users in a channel T, V, S
    */
-  MENTION_EVERYONE = 1 << 17,
+  MENTION_EVERYONE = 0x0000000000020000,
 
   /**
-   * @description Allows the usage of custom emojis from other servers	T, V, S
+   * @description Allows the usage of custom emojis from other servers T, V, S
    */
-  USE_EXTERNAL_EMOJIS = 1 << 18,
+  USE_EXTERNAL_EMOJIS = 0x0000000000040000,
 
   /**
-   * @description Allows for viewing guild insights	 =
+   * @description Allows for viewing guild insights  =
 
    */
-  VIEW_GUILD_INSIGHTS = 1 << 19,
-
-  /**
-   * @description Allows for joining of a voice channel	V, S
-
-   */
-  CONNECT = 1 << 20,
+  VIEW_GUILD_INSIGHTS = 0x0000000000080000,
 
   /**
-   * @description Allows for speaking in a voice channel	V
+   * @description Allows for joining of a voice channel V, S
+
    */
-  SPEAK = 1 << 21,
+  CONNECT = 0x0000000000100000,
 
   /**
-   * @description Allows for muting members in a voice channel	V, S
+   * @description Allows for speaking in a voice channel V
    */
-  MUTE_MEMBERS = 1 << 22,
+  SPEAK = 0x0000000000200000,
 
   /**
-   * @description Allows for deafening of members in a voice channel	V
+   * @description Allows for muting members in a voice channel V, S
    */
-  DEAFEN_MEMBERS = 1 << 23,
+  MUTE_MEMBERS = 0x0000000000400000,
 
   /**
-   * @description Allows for moving of members between voice channels	V, S
+   * @description Allows for deafening of members in a voice channel V
    */
-  MOVE_MEMBERS = 1 << 24,
+  DEAFEN_MEMBERS = 0x0000000000800000,
 
   /**
-   * @description Allows for using voice-activity-detection in a voice channel	V
+   * @description Allows for moving of members between voice channels V, S
    */
-  USE_VAD = 1 << 25,
+  MOVE_MEMBERS = 0x0000000001000000,
 
   /**
-   * @description Allows for modification of own nickname	 =
+   * @description Allows for using voice-activity-detection in a voice channel V
    */
-  CHANGE_NICKNAME = 1 << 26,
+  USE_VAD = 0x0000000002000000,
 
   /**
-   * @description Allows for modification of other users nicknames	 =
+   * @description Allows for modification of own nickname  =
    */
-  MANAGE_NICKNAMES = 1 << 27,
+  CHANGE_NICKNAME = 0x0000000004000000,
 
   /**
-   * @description Allows management and editing of roles	T, V, S
+   * @description Allows for modification of other users nicknames  =
    */
-  MANAGE_ROLES = 1 << 28,
-  /**
-   * @description Allows management and editing of webhooks	T, V, S
-   */
-  MANAGE_WEBHOOKS = 1 << 29,
+  MANAGE_NICKNAMES = 0x0000000008000000,
 
   /**
-   * @description Allows management and editing of emojis, stickers, and soundboard sounds	 =
+   * @description Allows management and editing of roles T, V, S
    */
-  MANAGE_GUILD_EXPRESSIONS = 1 << 30,
+  MANAGE_ROLES = 0x0000000010000000,
+  /**
+   * @description Allows management and editing of webhooks T, V, S
+   */
+  MANAGE_WEBHOOKS = 0x0000000020000000,
 
   /**
-   * @description Allows members to use application commands, including slash commands and context menu commands.	T, V, S
+   * @description Allows management and editing of emojis, stickers, and soundboard sounds  =
    */
-  USE_APPLICATION_COMMANDS = 1 << 31,
+  MANAGE_GUILD_EXPRESSIONS = 0x0000000040000000,
+
+  /**
+   * @description Allows members to use application commands, including slash commands and context menu commands. T, V, S
+   */
+  USE_APPLICATION_COMMANDS = 0x0000000080000000,
 
   /**
    * @description Allows for requesting to speak in stage channels.
-   * (This permission is under active development and may be changed or removed.)	S
+   * (This permission is under active development and may be changed or removed.) S
    */
-  REQUEST_TO_SPEAK = 1 << 32,
+  REQUEST_TO_SPEAK = 0x0000000100000000,
 
   /**
-   * @description Allows for creating, editing, and deleting scheduled events	V, S
+   * @description Allows for creating, editing, and deleting scheduled events V, S
    */
-  MANAGE_EVENTS = 1 << 33,
+  MANAGE_EVENTS = 0x0000000200000000,
 
   /**
-   * @description Allows for deleting and archiving threads, and viewing all private threads	T
+   * @description Allows for deleting and archiving threads, and viewing all private threads T
    */
-  MANAGE_THREADS = 1 << 34,
+  MANAGE_THREADS = 0x0000000400000000,
 
   /**
-   * @description Allows for creating public and announcement threads	T
+   * @description Allows for creating public and announcement threads T
    */
-  CREATE_PUBLIC_THREADS = 1 << 35,
+  CREATE_PUBLIC_THREADS = 0x0000000800000000,
 
   /**
-   * @description Allows for creating private threads	T
+   * @description Allows for creating private threads T
    */
-  CREATE_PRIVATE_THREADS = 1 << 36,
+  CREATE_PRIVATE_THREADS = 0x0000001000000000,
 
   /**
-   * @description Allows the usage of custom stickers from other servers	T, V, S
+   * @description Allows the usage of custom stickers from other servers T, V, S
    */
-  USE_EXTERNAL_STICKERS = 1 << 37,
+  USE_EXTERNAL_STICKERS = 0x0000002000000000,
 
   /**
-   * @description Allows for sending messages in threads	T
+   * @description Allows for sending messages in threads T
    */
-  SEND_MESSAGES_IN_THREADS = 1 << 38,
+  SEND_MESSAGES_IN_THREADS = 0x0000004000000000,
 
   /**
-   * @description Allows for using Activities (applications with the EMBEDDED flag) in a voice channel	V
+   * @description Allows for using Activities (applications with the EMBEDDED flag) in a voice channel V
    */
-  USE_EMBEDDED_ACTIVITIES = 1 << 39,
+  USE_EMBEDDED_ACTIVITIES = 0x0000008000000000,
 
   /**
    * @description Allows for timing out users to prevent them from sending
-   * or reacting to messages in chat and threads, and from speaking in voice and stage channels	 =
+   * or reacting to messages in chat and threads, and from speaking in voice and stage channels  =
    */
-  MODERATE_MEMBERS = 1 << 40,
+  MODERATE_MEMBERS = 0x0000010000000000,
 
   /**
-   * @description 	Allows for viewing role subscription insights	 =
+   * @description  Allows for members to share their video, screen share, or stream game in server
    */
-  VIEW_CREATOR_MONETIZATION_ANALYTICS = 1 << 41,
+  VIDEO = 0x0000020000000000,
 
   /**
-   * @description Allows for using soundboard in a voice channel	V
+   * @description Allows for using soundboard in a voice channel V
    */
-  USE_SOUNDBOARD = 1 << 42,
+  USE_SOUNDBOARD = 0x0000040000000000,
 
   /**
-   * @description Allows the usage of custom soundboard sounds from other servers	V
+   * @description Allows the usage of custom soundboard sounds from other servers V
    */
-  USE_EXTERNAL_SOUNDS = 1 << 43,
+  USE_EXTERNAL_SOUNDS = 0x0000200000000000,
 
   /**
-   * @description Allows sending voice messages	T, V, S
+   * @description Allows sending voice messages T, V, S
    */
-  SEND_VOICE_MESSAGES = 1 << 44,
+  SEND_VOICE_MESSAGES = 0x0000400000000000,
 }
 
 export type RoleTagType = {
-  bot_id?: string; //	the id of the bot this role belongs to
-  integration_id?: string; //	the id of the integration this role belongs to
-  premium_subscriber?: boolean | null; //	whether this is the guild's Booster role
-  subscription_listing_id?: string; //	the id of this role's subscription sku and listing
-  available_for_purchase?: boolean | null; //	whether this role is available for purchase
-  guild_connections?: any | null; //	whether this role is a guild's linked role
+  bot_id?: string; // the id of the bot this role belongs to
+  integration_id?: string; // the id of the integration this role belongs to
+  premium_subscriber?: boolean | null; // whether this is the guild's Booster role
+  subscription_listing_id?: string; // the id of this role's subscription sku and listing
+  available_for_purchase?: boolean | null; // whether this role is available for purchase
+  guild_connections?: any | null; // whether this role is a guild's linked role
 };
 @Schema()
 export class Roles extends Document implements RolesType {
@@ -287,9 +287,9 @@ export class Roles extends Document implements RolesType {
   position: number;
 
   @Prop({
-    type: Number,
+    type: String,
   })
-  permissions: Permissions;
+  permissions: string;
 
   @Prop({
     type: Boolean,

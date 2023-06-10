@@ -11,10 +11,7 @@ import {
 import { UserGuildsService } from '@/users_guilds/users_guilds.service';
 import { Channels, ChannelsSchema } from '@/channels/channels.schema';
 import { ChannelService } from '@/channels/channels.service';
-import {
-  UsersChannels,
-  UsersChannelsSchema,
-} from '@/users_channels/users_channels.schema';
+import { Roles, RolesSchema } from '@/roles/roles.schema';
 
 @Module({
   imports: [
@@ -22,7 +19,7 @@ import {
       { name: Guild.name, schema: GuildSchema },
       { name: Channels.name, schema: ChannelsSchema },
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
-      { name: UsersChannels.name, schema: UsersChannelsSchema },
+      { name: Roles.name, schema: RolesSchema },
     ]),
   ],
   controllers: [GuildController],

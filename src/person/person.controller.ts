@@ -31,15 +31,15 @@ export class PersonController {
     return `${r}${g}${a}`;
   }
   private defaultUser = {
-    avatar: '', //	the user's avatar hash	identify
-    bot: false, //	whether the user belongs to an OAuth2 application	identify
-    system: false, //	whether the user is an Official Discord System user (part of the urgent message system)	identify
-    mfa_enabled: false, //	whether the user has two factor enabled on their account	identify
-    banner: '', //	the user's banner hash	identify
-    accent_color: 0, //	the user's banner color encoded as an integer representation of hexadecimal color code	identify
-    locale: '', //	the user's chosen language option	identify
-    verified: false, //	whether the email on this account has been verified	email
-    email: '', //	the user's email	email
+    avatar: '', // the user's avatar hash identify
+    bot: false, // whether the user belongs to an OAuth2 application identify
+    system: false, // whether the user is an Official Discord System user (part of the urgent message system) identify
+    mfa_enabled: false, // whether the user has two factor enabled on their account identify
+    banner: '', // the user's banner hash identify
+    accent_color: 0, // the user's banner color encoded as an integer representation of hexadecimal color code identify
+    locale: '', // the user's chosen language option identify
+    verified: false, // whether the email on this account has been verified email
+    email: '', // the user's email email
   };
 
   @Post('/create')
@@ -70,7 +70,7 @@ export class PersonController {
       // Usernames cannot be: everyone, here
       const user = {
         ...this.defaultUser,
-        username: username, //	the user's username, not unique across the platform	identify
+        username: username, // the user's username, not unique across the platform identify
         email: email,
         locale: locale,
         accent_color: this.randomHex(),
@@ -135,7 +135,7 @@ export class PersonController {
     const { email, username, password } = request.body;
 
     this.person
-      .getUser({ email, username })
+      .getAuthUser({ email, username })
       .then((res) => {
         if (!res) throw Error("Couldn't find user ");
         const { password: resPassword, ...user } = res;
@@ -200,7 +200,7 @@ export class PersonController {
   ) {
     const me = useMe(request);
     this.person
-      .getUser({ username: me.login })
+      .getAuthUser({ username: me.login })
       .then((res) => {
         if (!res) throw Error("Couldn't find user");
         const { password, ...user } = res;

@@ -15,6 +15,12 @@ export class UsersGuilds extends Document implements UsersGuildsType {
     required: true,
   })
   guild_id: string;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  permissions: string;
 }
 
 export const UsersGuildsSchema = SchemaFactory.createForClass(UsersGuilds);

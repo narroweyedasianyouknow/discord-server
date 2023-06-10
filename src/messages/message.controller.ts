@@ -8,11 +8,14 @@ import { PostgreSQL } from 'src/postgres';
 import { SocketIoServer } from 'src/socket-io.server';
 import { MessagesType } from './messages.schema';
 import { MessagesService } from './messages.service';
+import { PersonService } from '@/person/person.service';
+import { UserType } from '@/person/person';
 
 @Controller('messages')
 export class MessagesController {
   constructor(
     @Inject(MessagesService) private messages: MessagesService,
+    @Inject(PersonService) private profile: PersonService,
     @Inject(SocketIoServer) private socketServer: SocketIoServer,
   ) {}
 
@@ -78,10 +81,15 @@ export class MessagesController {
     @Res() response: Response,
   ) {
     const me = useMe(request);
+    const myProfile = (await this.profile.getUser({
+      username: me.login,
+    })) as Partial<UserType>;
+
     const message = {
       ...this.defaultMessage,
       ...request.body,
-      author: me.user_id,
+      author: myProfile,
+      nonce: +new Date(),
     };
     this.messages
       .create(message)

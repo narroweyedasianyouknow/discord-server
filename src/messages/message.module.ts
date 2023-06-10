@@ -14,10 +14,8 @@ import { MessagesService } from './messages.service';
 import { SocketIoServer } from '@/socket-io.server';
 import { Guild, GuildSchema } from '@/guild/guild.schema';
 import { SocketStore } from '@/SocketStore';
-import {
-  UsersChannels,
-  UsersChannelsSchema,
-} from '@/users_channels/users_channels.schema';
+import { Person, PersonSchema } from '@/person/person.schema';
+import { PersonService } from '@/person/person.service';
 
 @Module({
   imports: [
@@ -25,11 +23,17 @@ import {
       { name: Messages.name, schema: MessagesSchema },
       { name: Guild.name, schema: GuildSchema },
       { name: UsersGuilds.name, schema: UsersGuildsSchema },
-      { name: UsersChannels.name, schema: UsersChannelsSchema },
       { name: Channels.name, schema: ChannelsSchema },
+      { name: Person.name, schema: PersonSchema },
     ]),
   ],
   controllers: [MessagesController],
-  providers: [MessagesService, ChannelService, SocketIoServer, SocketStore],
+  providers: [
+    MessagesService,
+    ChannelService,
+    PersonService,
+    SocketIoServer,
+    SocketStore,
+  ],
 })
 export class MessageModule {}

@@ -4,14 +4,12 @@ import type { Model } from 'mongoose';
 import { Channels } from './channels.schema';
 import { ChannelType } from './channels';
 import { Guild } from '@/guild/guild.schema';
-import { UsersChannels } from '@/users_channels/users_channels.schema';
 
 @Injectable()
 export class ChannelService {
   constructor(
     @InjectModel(Guild.name) private guild: Model<Guild>,
     @InjectModel(Channels.name) private channel: Model<Channels>,
-    @InjectModel(UsersChannels.name) private usersChannel: Model<UsersChannels>,
   ) {}
   // async myProfile(args: { username?: string; user_id?: string }) {
   //   return this.user.findOne(args).lean().exec();

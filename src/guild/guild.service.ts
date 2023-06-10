@@ -5,14 +5,14 @@ import type { GuildType } from './guild.schema';
 import type { Model } from 'mongoose';
 import { Channels } from '@/channels/channels.schema';
 import { CHANNEL_TYPES_LIST, ChannelType } from '@/channels/channels';
-import { UsersChannels } from '@/users_channels/users_channels.schema';
+import { Roles } from '@/roles/roles.schema';
 
 @Injectable()
 export class GuildService {
   constructor(
     @InjectModel(Guild.name) private model: Model<Guild>,
     @InjectModel(Channels.name) private channel: Model<Channels>,
-    @InjectModel(UsersChannels.name) private usersChannel: Model<UsersChannels>,
+    @InjectModel(Roles.name) private rolesModel: Model<Roles>,
   ) {}
 
   async create(createPersonDto: GuildType) {
@@ -22,20 +22,14 @@ export class GuildService {
       name: 'text channel',
       guild_id: createdGuild.id,
     };
-    await new this.channel(channelsCategory).save().then((res) => {
-      const channelsMainChannel: ChannelType = {
-        channel_type: CHANNEL_TYPES_LIST.GUILD_TEXT,
-        name: 'general',
-        guild_id: createdGuild.id,
-        parent_id: res.id,
-      };
-      new this.channel(channelsMainChannel).save().then((textChannel) => {
-        // new this.usersChannel({
-        //   channel_id: textChannel.id,
-        //   guilds_id: channelsCategory.owner_id,
-        // }).save();
-      });
-    });
+    const categoryReq = await new this.channel(channelsCategory).save();
+    const channelsMainChannel: ChannelType = {
+      channel_type: CHANNEL_TYPES_LIST.GUILD_TEXT,
+      name: 'general',
+      guild_id: createdGuild.id,
+      parent_id: categoryReq.id,
+    };
+    await new this.channel(channelsMainChannel).save();
     return createdGuild.save();
   }
 

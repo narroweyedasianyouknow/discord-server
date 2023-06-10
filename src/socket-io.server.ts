@@ -5,26 +5,43 @@ import { SocketStore } from './SocketStore';
 import type { Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UsersChannels } from './users_channels/users_channels.schema';
+import { Channels } from './channels/channels.schema';
+import { UsersGuilds } from './users_guilds/users_guilds.schema';
+import { CHANNEL_TYPES_LIST } from './channels/channels';
 
 @Injectable()
 export class SocketIoServer {
   private server: Server;
   constructor(
-    @InjectModel(UsersChannels.name)
-    private usersChannelsModel: Model<UsersChannels>,
     @Inject(SocketStore) private readonly socketStore: SocketStore,
+    @InjectModel(Channels.name) private channelsModel: Model<Channels>,
+    @InjectModel(UsersGuilds.name) private usersGuildsModel: Model<UsersGuilds>,
   ) {}
 
-  async findMyChannels(user_id: string): Promise<string[]> {
-    const list = await this.usersChannelsModel
-      .find({
-        user_id: user_id,
-      })
-      .lean()
-      .exec();
-    if (!list) return [];
-    return list.map((v) => v.channel_id);
+  async findMyGuilds(user_id: string): Promise<string[]> {
+    const list =
+      (await this.usersGuildsModel
+        .find({
+          user_id: user_id,
+        })
+        .lean()
+        .exec()) ?? [];
+
+    const channels = await Promise.all(
+      list.map(async (v) => {
+        const search = await this.channelsModel.find(
+          {
+            guild_id: v.guild_id,
+            channel_type: CHANNEL_TYPES_LIST.GUILD_TEXT,
+          },
+          {
+            id: 1,
+          },
+        );
+        return search.map((v) => v.id) as string[];
+      }),
+    );
+    return channels.flatMap((v) => v);
   }
   configure(server: any): void {
     this.server = new Server(server, {
@@ -44,7 +61,7 @@ export class SocketIoServer {
 
           if (typeof decoded !== 'string' && 'user_id' in decoded) {
             this.socketStore.addUserSocket(decoded.user_id, socket);
-            this.findMyChannels(decoded.user_id).then((result) => {
+            this.findMyGuilds(decoded.user_id).then((result) => {
               socket.join(result);
             });
           }

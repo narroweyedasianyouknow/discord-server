@@ -17,12 +17,29 @@ export class PersonService {
     return this.personModel.find().exec();
   }
 
+  async getAuthUser(user: { email?: string; username: string }) {
+    const getUser = async (u: Record<string, string>) => {
+      const response = await this.personModel.findOne(u).lean().exec();
+      if (response) {
+        response['id'] = response['_id'];
+        delete response['_id'];
+        delete response['__v'];
+      }
+      return response;
+    };
+    if (user.email) {
+      return getUser({ email: user.email });
+    } else {
+      return getUser({ username: user.username });
+    }
+  }
   async getUser(user: { email?: string; username: string }) {
     const getUser = async (u: Record<string, string>) => {
       const response = await this.personModel.findOne(u).lean().exec();
       if (response) {
         response['id'] = response['_id'];
         delete response['_id'];
+        delete response['password'];
         delete response['__v'];
       }
       return response;
