@@ -45,33 +45,19 @@ export class MessagesController {
     @Res() response: Response,
   ) {
     const { id } = request.body;
-    const isOk = fieldsChecker(
-      request.body,
-      {
-        id: 'string',
-      },
-      response,
-    );
-    if (!isOk) {
-      return;
-    }
-
-    // this.db
-    //   .select({
-    //     table: 'message',
-    //     condition: `WHERE subject_id = '${id}'`,
-    //   })
-    //   .then((result) => {
-    //     response.status(200).send({
-    //       response: result.rows,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     response.status(500).send({
-    //       error: err.stack,
-    //       response: false,
-    //     });
-    //   });
+    this.messages
+      .getChannelMessages(id)
+      .then((res) => {
+        response.status(200).send({
+          response: res,
+        });
+      })
+      .catch((err) => {
+        response.status(500).send({
+          error: err.stack,
+          response: false,
+        });
+      });
   }
 
   @Post()
@@ -89,7 +75,7 @@ export class MessagesController {
       ...this.defaultMessage,
       ...request.body,
       author: myProfile,
-      nonce: +new Date(),
+      timestamp: +new Date(),
     };
     this.messages
       .create(message)

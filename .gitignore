@@ -1,3 +1,8 @@
+# VARIABLES
+*.env
+keyFile.json
+
+
 # compiled output
 /dist
 /node_modules
@@ -28,7 +33,6 @@ lerna-debug.log*
 *.launch
 .settings/
 *.sublime-workspace
-*.env
 
 # IDE - VSCode
 .vscode/*

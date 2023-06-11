@@ -53,4 +53,8 @@ export class MessagesService {
       return false;
     }
   }
+  async getChannelMessages(id: string) {
+    const messages = this.messages.find({ channel_id: id }).limit(25).exec();
+    return messages;
+  }
 }
