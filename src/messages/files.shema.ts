@@ -18,14 +18,14 @@ export type AttachmentType = {
    * @description size of file in bytes
    */
   size: number;
-  /**
-   * @description source url of file
-   */
-  url: string;
-  /**
-   * @description a proxied url of file
-   */
-  proxy_url: string;
+  // /**
+  //  * @description source url of file
+  //  */
+  // url: string;
+  // /**
+  //  * @description a proxied url of file
+  //  */
+  // proxy_url: string;
   /**
    * @description height of file (if image)
    */

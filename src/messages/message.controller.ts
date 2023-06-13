@@ -71,7 +71,7 @@ export class MessagesController {
       username: me.login,
     })) as Partial<UserType>;
 
-    const message = {
+    const message: MessagesType = {
       ...this.defaultMessage,
       ...request.body,
       author: myProfile,

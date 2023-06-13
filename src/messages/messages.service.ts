@@ -54,7 +54,11 @@ export class MessagesService {
     }
   }
   async getChannelMessages(id: string) {
-    const messages = this.messages.find({ channel_id: id }).limit(25).exec();
+    const messages = this.messages
+      .find({ channel_id: id })
+      .sort({ timestamp: -1 })
+      .limit(25)
+      .exec();
     return messages;
   }
 }

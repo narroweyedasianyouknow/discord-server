@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import type { PersonType, UserType } from 'src/person/person';
+import { AttachmentType } from './files.shema';
 export type MessagesType = {
   channel_id: string; // id of the channel the message was sent in
   author: Partial<UserType>; // user object the author of this message (not guaranteed to be a valid user, see below)
@@ -12,7 +13,7 @@ export type MessagesType = {
   mentions: any[]; // of user objects users specifically mentioned in the message
   mention_roles: any[]; // of role object ids roles specifically mentioned in this message
   mention_channels?: any[]; // array of channel mention objects channels specifically mentioned in this message
-  attachments: any[]; // array of attachment objects any attached files
+  attachments: AttachmentType[]; // array of attachment objects any attached files
   //  embeds: any[]; // array of embed objects any embedded content
   //  reactions?: any[]; // array of reaction objects reactions to the message
   nonce?: number | string; // integer or string used for validating a message was sent
@@ -72,8 +73,22 @@ export class Messages extends Document implements MessagesType {
   @Prop({ type: [Object] })
   mention_channels?: any[] | undefined;
 
-  @Prop({ type: [Object] })
-  attachments: any[];
+  @Prop({
+    type: [
+      {
+        filename: String,
+        description: String,
+        content_type: String,
+        size: Number,
+        height: Number,
+        width: Number,
+        ephemeral: Boolean,
+        duration_secs: Number,
+        waveform: String,
+      },
+    ],
+  })
+  attachments: AttachmentType[];
 
   @Prop(String)
   channel_id: string;

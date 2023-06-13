@@ -43,7 +43,7 @@ import { Channels, ChannelsSchema } from './channels/channels.schema';
     MessageModule,
   ],
   controllers: [AvatarController, AppController],
-  providers: [PostgreSQL, SocketIoServer, SocketStore],
+  providers: [SocketIoServer, SocketStore],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {
