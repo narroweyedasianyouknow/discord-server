@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UsersGuilds } from './users_guilds.schema';
 import type { UsersGuildsType } from './users_guilds';
 import type { Model } from 'mongoose';
 import { PERMISSIONS_LIST } from '@/roles/roles.schema';
+import { GuildService } from '@/guild/guild.service';
 
 export const DEFAULT_PERMISSION = String(
   PERMISSIONS_LIST.VIEW_CHANNEL +
@@ -30,8 +31,14 @@ export class UserGuildsService {
     @InjectModel(UsersGuilds.name) private usersGuildsModel: Model<UsersGuilds>,
   ) {}
 
-  async create(createPersonDto: UsersGuildsType) {
-    const createdPerson = new this.usersGuildsModel(createPersonDto);
+  async create(userGuildDto: UsersGuildsType) {
+    const createdPerson = new this.usersGuildsModel(userGuildDto);
+    return createdPerson.save();
+  }
+  async joinToGuild(userGuildDto: UsersGuildsType) {
+    // TODO Join By Invite Links
+    // Currently by "id"
+    const createdPerson = new this.usersGuildsModel(userGuildDto);
     return createdPerson.save();
   }
 

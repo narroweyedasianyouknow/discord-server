@@ -15,6 +15,6 @@ import { Channels, ChannelsSchema } from './channels/channels.schema';
       { name: Channels.name, schema: ChannelsSchema },
     ]),
   ],
-  providers: [SocketIoServer, SocketStore],
+  providers: [SocketIoServer],
 })
 export class SocketIOModule {}

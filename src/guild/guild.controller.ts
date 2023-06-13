@@ -17,12 +17,17 @@ import {
   DEFAULT_PERMISSION,
   UserGuildsService,
 } from '@/users_guilds/users_guilds.service';
+import { SocketStore } from '@/SocketStore';
+import { CHANNEL_TYPES_LIST } from '@/channels/channels';
+import { SocketIoServer } from '@/socket-io.server';
 
 @Controller('guild')
 export class GuildController {
   constructor(
     @Inject(UserGuildsService) private userGuilds: UserGuildsService,
     @Inject(GuildService) private guild: GuildService,
+    @Inject(SocketStore) private socketStore: SocketStore,
+    @Inject(SocketIoServer) private socketServer: SocketIoServer,
   ) {}
   expiresAge = () => {
     const date = new Date();
@@ -85,14 +90,19 @@ export class GuildController {
     this.guild
       .create(value)
       .then((res) => {
-        const _id = res.id;
         this.userGuilds.create({
           user_id: user.user_id,
-          guild_id: _id,
+          guild_id: res.id,
           permissions: DEFAULT_PERMISSION,
         });
+
+        const socket = this.socketStore.getUserSocket(user.user_id);
+        const channelIds = res.channels.map((v) => {
+          return String(v.id);
+        });
+        socket?.join(channelIds);
         response.status(201).send({
-          response: { ...value, id: _id },
+          response: res,
         });
       })
       .catch(
@@ -126,7 +136,7 @@ export class GuildController {
       .findMyGuilds(user.user_id)
       .then((res) => {
         this.guild
-          .findGuilds(res)
+          .findGuildsList(res)
           .then((v) => {
             response.status(200).send({
               response: v,
@@ -154,6 +164,47 @@ export class GuildController {
       .catch((res) => {
         response.status(500).send({
           response: res,
+        });
+      });
+  }
+
+  @Post('/join')
+  async join(
+    @Req()
+    request: Request<
+      any,
+      any,
+      {
+        guild_id: string;
+      }
+    >,
+    @Res() response: Response,
+  ) {
+    const { guild_id } = request.body;
+    const user = useMe(request);
+
+    this.userGuilds
+      .joinToGuild({
+        guild_id,
+        permissions: DEFAULT_PERMISSION,
+        user_id: user.user_id,
+      })
+      .then(() => {
+        this.guild.getGuildChannels(guild_id).then((channels) => {
+          const socket = this.socketStore.getUserSocket(user.user_id);
+          const channelIds = channels.map((v) => {
+            return String(v.id);
+          });
+          socket?.join(channelIds);
+        });
+
+        response.status(200).send({
+          response: this.guild.findGuild(guild_id),
+        });
+      })
+      .catch((err) => {
+        response.status(401).send({
+          response: err?.message,
         });
       });
   }

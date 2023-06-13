@@ -10,6 +10,7 @@ export class SocketStore {
   }
 
   getUserSocket(userId: string): Socket | undefined {
+    console.log('SOCKETSTORE', this.socketMap, userId);
     return this.socketMap.get(userId);
   }
 

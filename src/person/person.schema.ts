@@ -2,9 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import type { PersonType } from './person';
 
-@Schema({
-  strict: true,
-})
+@Schema({})
 export class Person extends Document implements PersonType {
   @Prop({
     type: String,

@@ -79,6 +79,9 @@ export class SocketIoServer {
       socket.on('on join-room', (data) => {
         console.log('socket join room:', data);
       });
+      socket.on('DEV USER_JOINED_CHANNEL', (data) => {
+        console.log('Added message:', data);
+      });
     });
   }
 

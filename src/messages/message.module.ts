@@ -28,12 +28,6 @@ import { PersonService } from '@/person/person.service';
     ]),
   ],
   controllers: [MessagesController],
-  providers: [
-    MessagesService,
-    ChannelService,
-    PersonService,
-    SocketIoServer,
-    SocketStore,
-  ],
+  providers: [MessagesService, ChannelService, PersonService, SocketIoServer],
 })
 export class MessageModule {}

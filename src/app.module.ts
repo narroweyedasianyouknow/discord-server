@@ -20,6 +20,7 @@ import { ChannelsModule } from './channels/channels.module';
 import AppController from './app.controller';
 import { MessageModule } from './messages/message.module';
 import { Channels, ChannelsSchema } from './channels/channels.schema';
+import { SocketStoreModule } from './socketStore/socketStore.module';
 
 // const controllers = [];
 @Module({
@@ -41,9 +42,10 @@ import { Channels, ChannelsSchema } from './channels/channels.schema';
     UsersGuildsModule,
     ChannelsModule,
     MessageModule,
+    SocketStoreModule,
   ],
   controllers: [AvatarController, AppController],
-  providers: [SocketIoServer, SocketStore],
+  providers: [SocketIoServer],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {

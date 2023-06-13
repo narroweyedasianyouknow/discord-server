@@ -1,9 +1,10 @@
-import { Controller, Get, Inject, Req, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
 import { UserGuildsService } from './users_guilds.service';
 import type { Request, Response } from 'express';
 import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
 
 import { useMe } from 'src/funcs/useMe';
+import { GuildService } from '@/guild/guild.service';
 
 @Controller('users_guilds')
 export default class UsersGuildsController {
