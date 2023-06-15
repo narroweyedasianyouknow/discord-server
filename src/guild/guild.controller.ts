@@ -18,7 +18,6 @@ import {
   UserGuildsService,
 } from '@/users_guilds/users_guilds.service';
 import { SocketStore } from '@/SocketStore';
-import { CHANNEL_TYPES_LIST } from '@/channels/channels';
 import { SocketIoServer } from '@/socket-io.server';
 
 @Controller('guild')
@@ -183,24 +182,39 @@ export class GuildController {
     const { guild_id } = request.body;
     const user = useMe(request);
 
-    this.userGuilds
-      .joinToGuild({
-        guild_id,
-        permissions: DEFAULT_PERMISSION,
-        user_id: user.user_id,
-      })
-      .then(() => {
-        this.guild.getGuildChannels(guild_id).then((channels) => {
-          const socket = this.socketStore.getUserSocket(user.user_id);
-          const channelIds = channels.map((v) => {
-            return String(v.id);
+    this.guild
+      .findGuild(guild_id)
+      .then((guild) => {
+        this.userGuilds
+          .joinToGuild({
+            guild_id,
+            permissions: DEFAULT_PERMISSION,
+            user_id: user.user_id,
+          })
+          .then(() => {
+            this.guild
+              .getGuildChannels(guild_id)
+              .then(async (channels) => {
+                const socket = this.socketStore.getUserSocket(user.user_id);
+                const channelIds = channels.map((v) => {
+                  return String(v.id);
+                });
+                socket?.join(channelIds);
+                response.status(200).send({
+                  response: guild,
+                });
+              })
+              .catch((err) => {
+                response.status(401).send({
+                  response: err?.message,
+                });
+              });
+          })
+          .catch((err) => {
+            response.status(401).send({
+              response: err?.message,
+            });
           });
-          socket?.join(channelIds);
-        });
-
-        response.status(200).send({
-          response: this.guild.findGuild(guild_id),
-        });
       })
       .catch((err) => {
         response.status(401).send({
