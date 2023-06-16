@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { SocketStore } from './SocketStore';
-import { AttachmentsController } from './attachments/attachments.controller';
+import { FilesController } from './files/files.controller';
 import { GuildModule } from './guild/guild.module';
 import { multerOptions } from './multer';
 import { PersonModule } from './person/person.module';
@@ -44,7 +44,7 @@ import { SocketStoreModule } from './socketStore/socketStore.module';
     MessageModule,
     SocketStoreModule,
   ],
-  controllers: [AttachmentsController, AppController],
+  controllers: [FilesController, AppController],
   providers: [SocketIoServer],
 })
 export class AppModule {}

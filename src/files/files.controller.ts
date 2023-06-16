@@ -12,6 +12,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import * as sharp from 'sharp';
 import * as nodePath from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { closeSync, openSync, readSync, stat } from 'node:fs';
 
 type FileType = {
@@ -24,8 +25,8 @@ type FileType = {
   path: string;
   size: number;
 };
-@Controller('attachments')
-export class AttachmentsController {
+@Controller('files')
+export class FilesController {
   buffer = Buffer.alloc(24);
 
   /** @deprecated Useless because I can use library `sharp` and get dimensions */
@@ -73,23 +74,46 @@ export class AttachmentsController {
       return {};
     }
   }
-  async transform(image: Express.Multer.File): Promise<string> {
-    const originalName = nodePath.parse(image.originalname).name;
-    const filename = Date.now() + '-' + originalName + '.webp';
 
-    await sharp(image.buffer)
-      .resize(800)
-      .webp({ effort: 3 })
-      .toFile(nodePath.join('uploads', filename));
+  private getResizeOption(
+    dimensions: {
+      width: number | undefined;
+      height: number | undefined;
+    },
+    maxWidth = 550,
+    maxHeight = 350,
+  ) {
+    const resizeOptions: {
+      width: number | undefined;
+      height: number | undefined;
+    } = {
+      width: undefined,
+      height: undefined,
+    };
 
-    return filename;
+    // CHECK IF WE HAVE DIMENSIONS
+    if (dimensions.height && dimensions.width) {
+      // RESIZE BY HEIGHT
+      if (dimensions.height > dimensions.width) {
+        resizeOptions.height =
+          dimensions.height > maxHeight ? maxHeight : dimensions.height;
+      }
+      // RESIZE BY WIDTH
+      else {
+        resizeOptions.width =
+          dimensions.width > maxWidth ? maxWidth : dimensions.width;
+      }
+    } else {
+      resizeOptions.width = maxWidth;
+    }
+    return resizeOptions;
   }
 
-  @Post('')
+  @Post('avatar')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(
+  async uploadFile(
     @UploadedFile()
-    file: FileType,
+    file: Express.Multer.File,
     @Res() response: Response,
   ) {
     const {
@@ -98,13 +122,52 @@ export class AttachmentsController {
       path,
       encoding,
       originalname,
+      mimetype,
+      buffer,
       ...uploaded
     } = file;
+    const properties = {
+      size: uploaded.size,
+      width: 0,
+      height: 0,
+    };
+    const compressedName = `${uuidv4()}.webp`;
+
+    const sharpedFile = await sharp(buffer);
+    const dimensions = await sharpedFile.metadata();
+    const resizeOptions = this.getResizeOption(
+      {
+        height: dimensions.height,
+        width: dimensions.width,
+      },
+      48,
+      48,
+    );
+
+    const compressedFile = await sharpedFile
+      .resize({
+        ...resizeOptions,
+        fit: sharp.fit.contain,
+      })
+      .webp({ effort: 3 })
+      .toFile(nodePath.join('./static/avatars', compressedName));
+
+    properties.size = compressedFile.size;
+    properties.width = compressedFile.width;
+    properties.height = compressedFile.height;
+
     response.status(201).send({
-      response: uploaded,
+      response: {
+        ...uploaded,
+        ...properties,
+
+        description: originalname,
+        content_type: mimetype,
+        filename: compressedName,
+      },
     });
   }
-  @Post('files')
+  @Post('attachments')
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFilesList(
     @Req() request: Request,
@@ -125,49 +188,30 @@ export class AttachmentsController {
             encoding,
             originalname,
             mimetype,
+            buffer,
             ...uploaded
           }) => {
-            const sharpedFile = await sharp(path);
+            const sharpedFile = await sharp(buffer);
             const dimensions = await sharpedFile.metadata();
 
-            const originalName = nodePath.parse(uploaded.filename).name;
-            const compressedName = `${originalName}.webp`;
+            const compressedName = `${uuidv4()}.webp`;
             const properties = {
               size: uploaded.size,
               width: 0,
               height: 0,
             };
-            const resizeOptions: {
-              width: number | undefined;
-              height: number | undefined;
-            } = {
-              width: undefined,
-              height: undefined,
-            };
+            const resizeOptions = this.getResizeOption({
+              height: dimensions.height,
+              width: dimensions.width,
+            });
 
-            // CHECK IF WE HAVE DIMENSIONS
-            if (dimensions.height && dimensions.width) {
-              // RESIZE BY HEIGHT
-              if (dimensions.height > dimensions.width) {
-                resizeOptions.height =
-                  dimensions.height > 350 ? 350 : dimensions.height;
-              }
-              // RESIZE BY WIDTH
-              else {
-                resizeOptions.width =
-                  dimensions.width > 550 ? 550 : dimensions.width;
-              }
-            } else {
-              resizeOptions.width = 550;
-            }
             const compressedFile = await sharpedFile
               .resize({
                 ...resizeOptions,
                 fit: sharp.fit.contain,
               })
               .webp({ effort: 3 })
-              .toFile(nodePath.join(destination, compressedName));
-
+              .toFile(nodePath.join('./static/attachments', compressedName));
             properties.size = compressedFile.size;
             properties.width = compressedFile.width;
             properties.height = compressedFile.height;
