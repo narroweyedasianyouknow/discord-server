@@ -75,40 +75,6 @@ export class FilesController {
     }
   }
 
-  private getResizeOption(
-    dimensions: {
-      width: number | undefined;
-      height: number | undefined;
-    },
-    maxWidth = 550,
-    maxHeight = 350,
-  ) {
-    const resizeOptions: {
-      width: number | undefined;
-      height: number | undefined;
-    } = {
-      width: undefined,
-      height: undefined,
-    };
-
-    // CHECK IF WE HAVE DIMENSIONS
-    if (dimensions.height && dimensions.width) {
-      // RESIZE BY HEIGHT
-      if (dimensions.height > dimensions.width) {
-        resizeOptions.height =
-          dimensions.height > maxHeight ? maxHeight : dimensions.height;
-      }
-      // RESIZE BY WIDTH
-      else {
-        resizeOptions.width =
-          dimensions.width > maxWidth ? maxWidth : dimensions.width;
-      }
-    } else {
-      resizeOptions.width = maxWidth;
-    }
-    return resizeOptions;
-  }
-
   @Post('avatar')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -116,55 +82,23 @@ export class FilesController {
     file: Express.Multer.File,
     @Res() response: Response,
   ) {
-    const {
-      fieldname,
-      destination,
-      path,
-      encoding,
-      originalname,
-      mimetype,
-      buffer,
-      ...uploaded
-    } = file;
-    const properties = {
-      size: uploaded.size,
-      width: 0,
-      height: 0,
+    const { path, mimetype, filename } = file;
+
+    const dimensions = await sharp(path).metadata();
+
+    const attach: AttachmentType = {
+      filename: filename,
+      size: dimensions.size ?? 0,
+      height: dimensions.height ?? 0,
+      width: dimensions.width ?? 0,
+      content_type: mimetype,
+      description: '',
+      duration_secs: undefined,
+      ephemeral: false,
+      waveform: undefined,
     };
-    const compressedName = `${uuidv4()}.webp`;
-
-    const sharpedFile = await sharp(buffer);
-    const dimensions = await sharpedFile.metadata();
-    const resizeOptions = this.getResizeOption(
-      {
-        height: dimensions.height,
-        width: dimensions.width,
-      },
-      48,
-      48,
-    );
-
-    const compressedFile = await sharpedFile
-      .resize({
-        ...resizeOptions,
-        fit: sharp.fit.contain,
-      })
-      .webp({ effort: 3 })
-      .toFile(nodePath.join('./static/avatars', compressedName));
-
-    properties.size = compressedFile.size;
-    properties.width = compressedFile.width;
-    properties.height = compressedFile.height;
-
     response.status(201).send({
-      response: {
-        ...uploaded,
-        ...properties,
-
-        description: originalname,
-        content_type: mimetype,
-        filename: compressedName,
-      },
+      response: attach,
     });
   }
   @Post('attachments')
@@ -180,65 +114,36 @@ export class FilesController {
     // console.log(result);
     response.status(201).send({
       response: await Promise.all(
-        files.map(
-          async ({
-            fieldname,
-            destination,
-            path,
-            encoding,
-            originalname,
-            mimetype,
-            buffer,
-            ...uploaded
-          }) => {
-            const sharpedFile = await sharp(buffer);
-            const dimensions = await sharpedFile.metadata();
+        files.map(async ({ path, mimetype, filename }) => {
+          const dimensions = await sharp(path).metadata();
 
-            const compressedName = `${uuidv4()}.webp`;
-            const properties = {
-              size: uploaded.size,
-              width: 0,
-              height: 0,
-            };
-            const resizeOptions = this.getResizeOption({
-              height: dimensions.height,
-              width: dimensions.width,
-            });
+          const attach: AttachmentType = {
+            filename: filename,
+            size: dimensions.size ?? 0,
+            height: dimensions.height ?? 0,
+            width: dimensions.width ?? 0,
+            content_type: mimetype,
+            description: '',
+            duration_secs: undefined,
+            ephemeral: false,
+            waveform: undefined,
+          };
+          // TODO VIDEO DURATION & DIMENSIONS
+          // const command = `ffprobe -v error -show_entries format=duration:stream=width,height -of json ${path}`;
+          // exec(command, (err, stdout, stderr) => {
+          //   const metadata = JSON.parse(stdout);
 
-            const compressedFile = await sharpedFile
-              .resize({
-                ...resizeOptions,
-                fit: sharp.fit.contain,
-              })
-              .webp({ effort: 3 })
-              .toFile(nodePath.join('./static/attachments', compressedName));
-            properties.size = compressedFile.size;
-            properties.width = compressedFile.width;
-            properties.height = compressedFile.height;
+          //   const duration = metadata.format.duration;
+          //   const width = metadata.streams[0].width;
+          //   const height = metadata.streams[0].height;
 
-            // TODO VIDEO DURATION & DIMENSIONS
-            // const command = `ffprobe -v error -show_entries format=duration:stream=width,height -of json ${path}`;
-            // exec(command, (err, stdout, stderr) => {
-            //   const metadata = JSON.parse(stdout);
+          //   console.log('Длительность (в секундах):', duration);
+          //   console.log('Высота:', height);
+          //   console.log('Ширина:', width);
+          // });
 
-            //   const duration = metadata.format.duration;
-            //   const width = metadata.streams[0].width;
-            //   const height = metadata.streams[0].height;
-
-            //   console.log('Длительность (в секундах):', duration);
-            //   console.log('Высота:', height);
-            //   console.log('Ширина:', width);
-            // });
-            const file: AttachmentType = {
-              ...uploaded,
-              ...properties,
-              description: originalname,
-              content_type: mimetype,
-              filename: compressedName,
-            };
-            return file;
-          },
-        ),
+          return attach;
+        }),
       ),
     });
   }
