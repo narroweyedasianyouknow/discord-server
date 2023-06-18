@@ -2,6 +2,9 @@
 import {
   Body,
   Controller,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
@@ -49,42 +52,36 @@ export class ChannelsController {
   };
 
   @Post('create')
-  async create(
-    @Body() body: ChannelType,
-    @Res() response: Response,
-    @Profile() user: CookieProfile,
-  ) {
-    this.channel
-      .create({ ...this.defaultValue, ...body }, user.user_id)
-      .then((res) => {
-        response.status(201).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(400).send({
-          response: err,
-        });
-      });
+  @HttpCode(201)
+  async create(@Body() body: ChannelType, @Profile() user: CookieProfile) {
+    const create = await this.channel.create(
+      { ...this.defaultValue, ...body },
+      user.user_id,
+    );
+    if (!create) {
+      throw new HttpException(
+        'Error! Cannot create guild',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return {
+      response: create,
+    };
   }
   @Put(':parent_id/update')
+  @HttpCode(204)
   async update(
     @Param('parent_id') parent_id: string,
     @Body() body: ChannelType & { id: string },
-    @Res() response: Response,
     @Profile() user: CookieProfile,
   ) {
-    this.channel
-      .update(parent_id, body, user.user_id)
-      .then((res) => {
-        response.status(201).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(400).send({
-          response: err,
-        });
-      });
+    const update = await this.channel.update(parent_id, body, user.user_id);
+
+    if (!update) {
+      throw new HttpException(
+        'Error! Cannot update guild',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

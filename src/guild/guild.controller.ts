@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
 
 import {
   DEFAULT_MESSAGE_NOTIFICATIONS_LEVEL,
@@ -56,21 +65,14 @@ export class GuildController {
     premium_progress_bar_enabled: false,
   };
 
-  @Get('')
-  async getGuild(@Res() response: Response) {
-    response.status(200).send({
-      response: true,
-    });
-  }
-
   @Post('/create')
+  @HttpCode(201)
   async create(
     @Body()
     body: {
       name: string;
       avatar?: string;
     },
-    @Res() response: Response,
     @Profile() user: CookieProfile,
   ) {
     const { name, avatar } = body;
@@ -80,107 +82,73 @@ export class GuildController {
       owner_id: user.user_id,
       icon: avatar,
     };
+    const createGuild = await this.guild.create(value);
 
-    this.guild
-      .create(value)
-      .then((res) => {
-        this.userGuilds.create({
-          user_id: user.user_id,
-          guild_id: res.id,
-          permissions: DEFAULT_PERMISSION,
-        });
+    await this.userGuilds.create({
+      user_id: user.user_id,
+      guild_id: createGuild.id,
+      permissions: DEFAULT_PERMISSION,
+    });
 
-        const socket = this.socketStore.getUserSocket(user.user_id);
-        const channelIds = res.channels.map((v) => {
-          return String(v.id);
-        });
-        socket?.join(channelIds);
-        response.status(201).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        const errCode = err.code;
-        console.log(err?.message);
-        response.status(401).send({
-          response: err?.message,
-        });
-      });
+    const socket = this.socketStore.getUserSocket(user.user_id);
+    const channelIds = createGuild.channels.map((v) => {
+      return String(v.id);
+    });
+    socket?.join(channelIds);
+    return {
+      response: createGuild,
+    };
   }
+
   @Get('/my')
-  async get(@Res() response: Response, @Profile() user: CookieProfile) {
-    this.userGuilds
-      .findMyGuilds(user.user_id)
-      .then((res) => {
-        this.guild
-          .findGuildsList(res)
-          .then((v) => {
-            response.status(200).send({
-              response: v,
-            });
-          })
-          .catch((err) => {
-            response.status(401).send({
-              response: err?.message,
-            });
-          });
-      })
-      .catch((res) => {
-        response.status(500).send({
-          response: res,
-        });
-      });
+  @HttpCode(200)
+  async get(@Profile() user: CookieProfile) {
+    const requestError = new HttpException(
+      'Error! Cannot get guilds list',
+      HttpStatus.BAD_REQUEST,
+    );
+    const myGuilds = await this.userGuilds.findMyGuilds(user.user_id);
+    if (!myGuilds) throw requestError;
+
+    const list = await this.guild.findGuildsList(myGuilds);
+    if (!list) throw requestError;
+
+    return {
+      response: list,
+    };
   }
 
   @Post('/join')
+  @HttpCode(200)
   async join(
-    @Body()
-    body: {
-      guild_id: string;
-    },
-    @Res() response: Response,
+    @Body('guild_id') guild_id: string,
     @Profile() user: CookieProfile,
   ) {
-    const { guild_id } = body;
+    const requestError = new HttpException(
+      'Error! Cannot join to guild',
+      HttpStatus.BAD_REQUEST,
+    );
 
-    this.guild
-      .findGuild(guild_id)
-      .then((guild) => {
-        this.userGuilds
-          .joinToGuild({
-            guild_id,
-            permissions: DEFAULT_PERMISSION,
-            user_id: user.user_id,
-          })
-          .then(() => {
-            this.guild
-              .getGuildChannels(guild_id)
-              .then(async (channels) => {
-                const socket = this.socketStore.getUserSocket(user.user_id);
-                const channelIds = channels.map((v) => {
-                  return String(v.id);
-                });
-                socket?.join(channelIds);
-                response.status(200).send({
-                  response: guild,
-                });
-              })
-              .catch((err) => {
-                response.status(401).send({
-                  response: err?.message,
-                });
-              });
-          })
-          .catch((err) => {
-            response.status(401).send({
-              response: err?.message,
-            });
-          });
-      })
-      .catch((err) => {
-        response.status(401).send({
-          response: err?.message,
-        });
-      });
+    const guild = await this.guild.findGuild(guild_id);
+
+    if (!guild) throw requestError;
+
+    const createUsersGuilds = await this.userGuilds.joinToGuild({
+      guild_id,
+      permissions: DEFAULT_PERMISSION,
+      user_id: user.user_id,
+    });
+
+    if (!createUsersGuilds) throw requestError;
+
+    const guildChannels = await this.guild.getGuildChannels(guild_id);
+    const socket = this.socketStore.getUserSocket(user.user_id);
+    const channelIds = guildChannels.map((v) => {
+      return String(v.id);
+    });
+    socket?.join(channelIds);
+    return {
+      response: guild,
+    };
   }
 }

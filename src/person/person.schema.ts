@@ -2,7 +2,16 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import type { PersonType } from './person';
 
-@Schema({})
+@Schema({
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+    },
+  },
+})
 export class Person extends Document implements PersonType {
   @Prop({
     type: String,

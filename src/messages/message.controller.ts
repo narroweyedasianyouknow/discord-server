@@ -1,5 +1,12 @@
-import { Controller, Post, Req, Res, Put, Inject, Body } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import {
+  Controller,
+  Post,
+  Inject,
+  Body,
+  HttpException,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { SocketIoServer } from 'src/socket-io.server';
 import { MessagesType } from './messages.schema';
 import { MessagesService } from './messages.service';
@@ -29,28 +36,23 @@ export class MessagesController {
     type: 0,
   };
   @Post('get')
-  async getMessages(@Body('id') id: string, @Res() response: Response) {
-    this.messages
-      .getChannelMessages(id)
-      .then((res) => {
-        response.status(200).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
+  @HttpCode(200)
+  async getMessages(@Body('id') id: string) {
+    const getMessages = await this.messages.getChannelMessages(id);
+    if (!getMessages) {
+      throw new HttpException(
+        'Error! Cannot get messages',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return {
+      response: getMessages,
+    };
   }
 
   @Post()
-  async addMessage(
-    @Body() body: MessagesType,
-    @Res() response: Response,
-    @Profile() user: CookieProfile,
-  ) {
+  @HttpCode(204)
+  async addMessage(@Body() body: MessagesType, @Profile() user: CookieProfile) {
     const myProfile = (await this.profile.getUser({
       username: user.login,
     })) as Partial<UserType>;
@@ -61,61 +63,17 @@ export class MessagesController {
       author: myProfile,
       timestamp: +new Date(),
     };
-    this.messages
-      .create(message)
-      .then((res) => {
-        this.socketServer
-          .getServer()
-          .to(message.channel_id)
-          .emit('add-message', res);
-        response.status(201).send(res);
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
+
+    const createdMessage = await this.messages.create(message);
+    if (!createdMessage) {
+      throw new HttpException(
+        'Error! Cannot create messages',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.socketServer
+      .getServer()
+      .to(message.channel_id)
+      .emit('add-message', createdMessage);
   }
-  // @Put()
-  // async edit(
-  //   @Req()
-  //   request: Request<any, any, IMessage>,
-  //   @Res() response: Response,
-  // ) {
-  //   const { id } = request.body;
-  //   const me = useMe(request);
-  //   const isOk = fieldsChecker(
-  //     request.body,
-  //     {
-  //       id: 'number',
-  //     },
-  //     response,
-  //   );
-  //   if (!isOk) {
-  //     return;
-  //   }
-
-  //   const body = {
-  //     name: request.body?.text_content,
-  //   };
-
-  //   this.db
-  //     .update({
-  //       table: 'message',
-  //       text: `SET ${this.db.setByKeys(Object.values(body))}`,
-  //       condition: `WHERE id = ${id} AND created_by = '${me}'`,
-  //     })
-  //     .then(() => {
-  //       response.status(200).send({
-  //         response: true,
-  //       });
-  //     })
-  //     .catch((err) => {
-  //       response.status(500).send({
-  //         error: err.stack,
-  //         response: false,
-  //       });
-  //     });
-  // }
 }
