@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { SocketIoServer } from './socket-io.server';
+import { SocketIoServer } from '@/socket/socket-io.server';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

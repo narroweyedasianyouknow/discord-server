@@ -4,22 +4,25 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { FilesController } from './files/files.controller';
-import { GuildModule } from './guild/guild.module';
+import { FilesController } from '@/controllers/files/files.controller';
+import { GuildModule } from '@/controllers/guild/guild.module';
 import { multerOptions } from './multer';
-import { PersonModule } from './person/person.module';
-import { UsersGuildsModule } from './users_guilds/users_guilds.module';
+import { PersonModule } from '@/controllers/person/person.module';
+import { UsersGuildsModule } from '@/controllers/users_guilds/users_guilds.module';
 import {
   UsersGuilds,
   UsersGuildsSchema,
-} from './users_guilds/users_guilds.schema';
-import { SocketIoServer } from './socket-io.server';
-import { ChannelsModule } from './channels/channels.module';
+} from '@/controllers/users_guilds/users_guilds.schema';
+import { SocketIoServer } from '@/socket/socket-io.server';
+import { ChannelsModule } from '@/controllers/channels/channels.module';
 import AppController from './app.controller';
-import { MessageModule } from './messages/message.module';
-import { Channels, ChannelsSchema } from './channels/channels.schema';
-import { SocketStoreModule } from './socketStore/socketStore.module';
-import { InvitesModule } from './invites/invites.module';
+import { MessageModule } from '@/controllers/messages/message.module';
+import {
+  Channels,
+  ChannelsSchema,
+} from '@/controllers/channels/channels.schema';
+import { SocketStoreModule } from '@/socket/socketStore.module';
+import { InvitesModule } from '@/controllers/invites/invites.module';
 
 // const controllers = [];
 @Module({
