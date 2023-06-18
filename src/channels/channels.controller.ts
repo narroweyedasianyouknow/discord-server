@@ -1,6 +1,6 @@
-import { useMe } from '@/funcs/useMe';
 // import { UserGuildsService } from '@/users_guilds/users_guilds.service';
 import {
+  Body,
   Controller,
   Inject,
   Param,
@@ -14,6 +14,7 @@ import { Request, Response } from 'express';
 import { ChannelType } from './channels';
 import { CHANNEL_TYPES_LIST } from './channels';
 import { ChannelService } from './channels.service';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('channels')
 export class ChannelsController {
@@ -49,12 +50,12 @@ export class ChannelsController {
 
   @Post('create')
   async create(
-    @Req() request: Request<any, any, ChannelType>,
+    @Body() body: ChannelType,
     @Res() response: Response,
+    @Profile() user: CookieProfile,
   ) {
-    const user = useMe(request);
     this.channel
-      .create({ ...this.defaultValue, ...request.body }, user.user_id)
+      .create({ ...this.defaultValue, ...body }, user.user_id)
       .then((res) => {
         response.status(201).send({
           response: res,
@@ -69,12 +70,12 @@ export class ChannelsController {
   @Put(':parent_id/update')
   async update(
     @Param('parent_id') parent_id: string,
-    @Req() request: Request<any, any, ChannelType & { id: string }>,
+    @Body() body: ChannelType & { id: string },
     @Res() response: Response,
+    @Profile() user: CookieProfile,
   ) {
-    const user = useMe(request);
     this.channel
-      .update(parent_id, request.body, user.user_id)
+      .update(parent_id, body, user.user_id)
       .then((res) => {
         response.status(201).send({
           response: res,

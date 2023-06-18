@@ -1,11 +1,10 @@
 import { scrypt, randomBytes } from 'crypto';
-import { Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
 import { sign } from 'jsonwebtoken';
 
 import { PersonService } from './person.service';
-import type { Request, Response } from 'express';
-import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
-import { useMe } from '@/funcs/useMe';
+import type { Response } from 'express';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('person')
 export class PersonController {
@@ -44,20 +43,16 @@ export class PersonController {
 
   @Post('/create')
   async signUp(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        username: string;
-        email: string;
-        password: string;
-        locale: string;
-      }
-    >,
+    @Body()
+    body: {
+      username: string;
+      email: string;
+      password: string;
+      locale: string;
+    },
     @Res() response: Response,
   ) {
-    const { email, username, password, locale } = request.body;
+    const { email, username, password, locale } = body;
     // SALT
     const salt = randomBytes(8).toString('hex');
 
@@ -97,42 +92,25 @@ export class PersonController {
             });
           }
         })
-        .catch(
-          (err: {
-            message: any;
-            code: keyof typeof MONGOOSE_ERRORS;
-            keyValue: Record<string, string>;
-          }) => {
-            const errCode = err.code;
-            if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-              response.status(401).send({
-                response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-              });
-            } else {
-              response.status(401).send({
-                response: err?.message,
-              });
-            }
-          },
-        );
+        .catch((err) => {
+          response.status(401).send({
+            response: err?.message,
+          });
+        });
     });
   }
 
   @Post('/login')
   async login(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        email: string;
-        username: string;
-        password: string;
-      }
-    >,
+    @Body()
+    body: {
+      email: string;
+      username: string;
+      password: string;
+    },
     @Res() response: Response,
   ) {
-    const { email, username, password } = request.body;
+    const { email, username, password } = body;
 
     this.person
       .getAuthUser({ email, username })
@@ -173,34 +151,16 @@ export class PersonController {
           });
         }
       })
-      .catch(
-        (err: {
-          message: any;
-          code: keyof typeof MONGOOSE_ERRORS;
-          keyValue: Record<string, string>;
-        }) => {
-          const errCode = err.code;
-          if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-            response.status(401).send({
-              response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-            });
-          } else {
-            response.status(401).send({
-              response: err?.message,
-            });
-          }
-        },
-      );
+      .catch((err) => {
+        response.status(401).send({
+          response: err?.message,
+        });
+      });
   }
   @Get('/me')
-  async me(
-    @Req()
-    request: Request<any, any>,
-    @Res() response: Response,
-  ) {
-    const me = useMe(request);
+  async me(@Res() response: Response, @Profile() user: CookieProfile) {
     this.person
-      .getAuthUser({ username: me.login })
+      .getAuthUser({ username: user.login })
       .then((res) => {
         if (!res) throw Error("Couldn't find user");
         const { password, ...user } = res;
@@ -213,23 +173,11 @@ export class PersonController {
           response: user,
         });
       })
-      .catch(
-        (err: {
-          message: any;
-          code: keyof typeof MONGOOSE_ERRORS;
-          keyValue: Record<string, string>;
-        }) => {
-          const errCode = err.code;
-          if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-            response.status(401).send({
-              response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-            });
-          } else {
-            response.status(401).send({
-              response: err?.message,
-            });
-          }
-        },
-      );
+      .catch((err) => {
+        const errCode = err.code;
+        response.status(401).send({
+          response: err?.message,
+        });
+      });
   }
 }

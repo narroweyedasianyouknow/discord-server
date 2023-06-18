@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
 
 import {
   DEFAULT_MESSAGE_NOTIFICATIONS_LEVEL,
@@ -11,14 +11,13 @@ import {
 import { GuildService } from './guild.service';
 import type { GuildType } from './guild.schema';
 import type { Request, Response } from 'express';
-import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
-import { useMe } from '@/funcs/useMe';
 import {
   DEFAULT_PERMISSION,
   UserGuildsService,
 } from '@/users_guilds/users_guilds.service';
 import { SocketStore } from '@/SocketStore';
 import { SocketIoServer } from '@/socket-io.server';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('guild')
 export class GuildController {
@@ -66,19 +65,15 @@ export class GuildController {
 
   @Post('/create')
   async create(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        name: string;
-        avatar?: string;
-      }
-    >,
+    @Body()
+    body: {
+      name: string;
+      avatar?: string;
+    },
     @Res() response: Response,
+    @Profile() user: CookieProfile,
   ) {
-    const { name, avatar } = request.body;
-    const user = useMe(request);
+    const { name, avatar } = body;
     const value: GuildType = {
       ...this.defaultValue,
       name: name,
@@ -104,33 +99,16 @@ export class GuildController {
           response: res,
         });
       })
-      .catch(
-        (err: {
-          message: any;
-          code: keyof typeof MONGOOSE_ERRORS;
-          keyValue: Record<string, string>;
-        }) => {
-          const errCode = err.code;
-          console.log(err?.message);
-          if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-            response.status(401).send({
-              response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-            });
-          } else {
-            response.status(401).send({
-              response: err?.message,
-            });
-          }
-        },
-      );
+      .catch((err) => {
+        const errCode = err.code;
+        console.log(err?.message);
+        response.status(401).send({
+          response: err?.message,
+        });
+      });
   }
   @Get('/my')
-  async get(
-    @Req()
-    request: Request,
-    @Res() response: Response,
-  ) {
-    const user = useMe(request);
+  async get(@Res() response: Response, @Profile() user: CookieProfile) {
     this.userGuilds
       .findMyGuilds(user.user_id)
       .then((res) => {
@@ -141,24 +119,11 @@ export class GuildController {
               response: v,
             });
           })
-          .catch(
-            (err: {
-              message: any;
-              code: keyof typeof MONGOOSE_ERRORS;
-              keyValue: Record<string, string>;
-            }) => {
-              const errCode = err.code;
-              if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-                response.status(401).send({
-                  response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-                });
-              } else {
-                response.status(401).send({
-                  response: err?.message,
-                });
-              }
-            },
-          );
+          .catch((err) => {
+            response.status(401).send({
+              response: err?.message,
+            });
+          });
       })
       .catch((res) => {
         response.status(500).send({
@@ -169,18 +134,14 @@ export class GuildController {
 
   @Post('/join')
   async join(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        guild_id: string;
-      }
-    >,
+    @Body()
+    body: {
+      guild_id: string;
+    },
     @Res() response: Response,
+    @Profile() user: CookieProfile,
   ) {
-    const { guild_id } = request.body;
-    const user = useMe(request);
+    const { guild_id } = body;
 
     this.guild
       .findGuild(guild_id)

@@ -20,5 +20,9 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "include": [
+    "src",
+    "./src/types/globalTypes.d.ts"
+  ]
 }

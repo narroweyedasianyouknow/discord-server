@@ -1,15 +1,11 @@
-import { Controller, Post, Req, Res, Put, Inject } from '@nestjs/common';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import type { IMessage } from './message';
+import { Controller, Post, Req, Res, Put, Inject, Body } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { fieldsChecker } from 'src/funcs/fieldChecker';
-import { useMe } from 'src/funcs/useMe';
-import { PostgreSQL } from 'src/postgres';
 import { SocketIoServer } from 'src/socket-io.server';
 import { MessagesType } from './messages.schema';
 import { MessagesService } from './messages.service';
 import { PersonService } from '@/person/person.service';
 import { UserType } from '@/person/person';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('messages')
 export class MessagesController {
@@ -33,18 +29,7 @@ export class MessagesController {
     type: 0,
   };
   @Post('get')
-  async getMessages(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        id: string;
-      }
-    >,
-    @Res() response: Response,
-  ) {
-    const { id } = request.body;
+  async getMessages(@Body('id') id: string, @Res() response: Response) {
     this.messages
       .getChannelMessages(id)
       .then((res) => {
@@ -62,18 +47,17 @@ export class MessagesController {
 
   @Post()
   async addMessage(
-    @Req()
-    request: Request<any, any, MessagesType>,
+    @Body() body: MessagesType,
     @Res() response: Response,
+    @Profile() user: CookieProfile,
   ) {
-    const me = useMe(request);
     const myProfile = (await this.profile.getUser({
-      username: me.login,
+      username: user.login,
     })) as Partial<UserType>;
 
     const message: MessagesType = {
       ...this.defaultMessage,
-      ...request.body,
+      ...body,
       author: myProfile,
       timestamp: +new Date(),
     };

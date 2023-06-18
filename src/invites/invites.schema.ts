@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import type { PersonType } from 'src/person/person';
-export type InviteType = {
+export type InvitesType = {
   code: string;
   guild_id: string;
   expires: number;
@@ -18,7 +18,7 @@ export type InviteType = {
     },
   },
 })
-export class Invite extends Document implements InviteType {
+export class Invites extends Document implements InvitesType {
   @Prop({
     type: String,
     unique: true,
@@ -46,4 +46,4 @@ export class Invite extends Document implements InviteType {
   max_used_count: number;
 }
 
-export const InviteSchema = SchemaFactory.createForClass(Invite);
+export const InvitesSchema = SchemaFactory.createForClass(Invites);

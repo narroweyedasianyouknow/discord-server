@@ -4,12 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { SocketStore } from './SocketStore';
 import { FilesController } from './files/files.controller';
 import { GuildModule } from './guild/guild.module';
 import { multerOptions } from './multer';
 import { PersonModule } from './person/person.module';
-import { PostgreSQL } from './postgres';
 import { UsersGuildsModule } from './users_guilds/users_guilds.module';
 import {
   UsersGuilds,
@@ -21,6 +19,7 @@ import AppController from './app.controller';
 import { MessageModule } from './messages/message.module';
 import { Channels, ChannelsSchema } from './channels/channels.schema';
 import { SocketStoreModule } from './socketStore/socketStore.module';
+import { InvitesModule } from './invites/invites.module';
 
 // const controllers = [];
 @Module({
@@ -43,6 +42,7 @@ import { SocketStoreModule } from './socketStore/socketStore.module';
     ChannelsModule,
     MessageModule,
     SocketStoreModule,
+    InvitesModule,
   ],
   controllers: [FilesController, AppController],
   providers: [SocketIoServer],

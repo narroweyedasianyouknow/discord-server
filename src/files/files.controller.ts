@@ -104,7 +104,6 @@ export class FilesController {
   @Post('attachments')
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFilesList(
-    @Req() request: Request,
     @UploadedFiles()
     files: Express.Multer.File[],
     @Res() response: Response,
