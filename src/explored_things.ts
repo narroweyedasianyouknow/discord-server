@@ -1,4 +1,4 @@
-import type { LOCALES_LIST } from 'src/locales';
+import type { LOCALES_LIST } from '@/types/locales';
 
 export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 export type Partial<T> = { [P in keyof T]?: T[P] };
