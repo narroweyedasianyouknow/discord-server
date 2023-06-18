@@ -1,7 +1,10 @@
-import { useMe } from '@/funcs/useMe';
 // import { UserGuildsService } from '@/users_guilds/users_guilds.service';
 import {
+  Body,
   Controller,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
@@ -14,6 +17,7 @@ import { Request, Response } from 'express';
 import { ChannelType } from './channels';
 import { CHANNEL_TYPES_LIST } from './channels';
 import { ChannelService } from './channels.service';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('channels')
 export class ChannelsController {
@@ -48,42 +52,36 @@ export class ChannelsController {
   };
 
   @Post('create')
-  async create(
-    @Req() request: Request<any, any, ChannelType>,
-    @Res() response: Response,
-  ) {
-    const user = useMe(request);
-    this.channel
-      .create({ ...this.defaultValue, ...request.body }, user.user_id)
-      .then((res) => {
-        response.status(201).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(400).send({
-          response: err,
-        });
-      });
+  @HttpCode(201)
+  async create(@Body() body: ChannelType, @Profile() user: CookieProfile) {
+    const create = await this.channel.create(
+      { ...this.defaultValue, ...body },
+      user.user_id,
+    );
+    if (!create) {
+      throw new HttpException(
+        'Error! Cannot create guild',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return {
+      response: create,
+    };
   }
   @Put(':parent_id/update')
+  @HttpCode(204)
   async update(
     @Param('parent_id') parent_id: string,
-    @Req() request: Request<any, any, ChannelType & { id: string }>,
-    @Res() response: Response,
+    @Body() body: ChannelType & { id: string },
+    @Profile() user: CookieProfile,
   ) {
-    const user = useMe(request);
-    this.channel
-      .update(parent_id, request.body, user.user_id)
-      .then((res) => {
-        response.status(201).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(400).send({
-          response: err,
-        });
-      });
+    const update = await this.channel.update(parent_id, body, user.user_id);
+
+    if (!update) {
+      throw new HttpException(
+        'Error! Cannot update guild',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

@@ -21,7 +21,9 @@
     "jest": true
   },
   "globals": {
-    "Express": "readonly"
+    "Express": "readonly",
+    "CookieValue": "readonly",
+    "CookieProfile": "readonly"
   },
   "ignorePatterns": [".eslintrc"],
   "rules": {

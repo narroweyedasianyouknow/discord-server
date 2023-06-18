@@ -1,10 +1,7 @@
-import { Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Res } from '@nestjs/common';
 import { UserGuildsService } from './users_guilds.service';
-import type { Request, Response } from 'express';
-import { MONGOOSE_ERRORS } from '@/utils/errorCodes';
-
-import { useMe } from 'src/funcs/useMe';
-import { GuildService } from '@/guild/guild.service';
+import type { Response } from 'express';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('users_guilds')
 export default class UsersGuildsController {
@@ -18,9 +15,7 @@ export default class UsersGuildsController {
   };
 
   @Get()
-  async create(@Req() request: Request, @Res() response: Response) {
-    const user = useMe(request);
-
+  async create(@Res() response: Response, @Profile() user: CookieProfile) {
     this.userGuilds
       .findMyGuilds(user.user_id)
       .then((guilds) => {
@@ -28,23 +23,10 @@ export default class UsersGuildsController {
           response: guilds,
         });
       })
-      .catch(
-        (err: {
-          message: any;
-          code: keyof typeof MONGOOSE_ERRORS;
-          keyValue: Record<string, string>;
-        }) => {
-          const errCode = err.code;
-          if (errCode in MONGOOSE_ERRORS && MONGOOSE_ERRORS[errCode]) {
-            response.status(401).send({
-              response: MONGOOSE_ERRORS[errCode](err?.keyValue),
-            });
-          } else {
-            response.status(401).send({
-              response: err?.message,
-            });
-          }
-        },
-      );
+      .catch((err) => {
+        response.status(401).send({
+          response: err?.message,
+        });
+      });
   }
 }

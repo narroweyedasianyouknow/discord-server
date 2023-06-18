@@ -1,38 +1,45 @@
-import { AttachmentType } from '@/messages/files.shema';
-import {
-  Controller,
-  Post,
-  Req,
-  Res,
-  UploadedFile,
-  UploadedFiles,
-  UseInterceptors,
-} from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { Controller, Get, Inject, Param, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
+import { InvitesService } from './invites.service';
+import { Cookies } from '@/decorators/Cookies';
 
 @Controller('invites')
-export class FilesController {
-  private generateRandomCode(length: number, guild_id: string, user: string) {
-    // Characters to create "random" invite code
-    const characters = `${guild_id}${user}ABCDEFGHIJKLMNOPQRSTUVWXYZ${guild_id}${user}abcdefghijklmnopqrstuvwxyz${guild_id}${user}0123456789${guild_id}${user}`;
-    let result = '';
+export class InvitesController {
+  constructor(
+    @Inject(InvitesService) private readonly inviteService: InvitesService,
+  ) {}
 
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
-    }
-
-    return result;
-  }
-
-  @Post('avatar')
-  async createInvite(
-    @Req()
-    request: Request,
+  @Get('use/:code')
+  async useInvite(
+    @Query('user_id') user_id: string,
+    @Query('guild_id') guild_id: string,
+    @Param('code') code: string,
     @Res() response: Response,
   ) {
+    const res = await this.inviteService.useInvite({
+      code: code,
+      guild_id: guild_id,
+      user_id: user_id,
+    });
     response.status(201).send({
-      response: {},
+      response: res,
+    });
+  }
+
+  @Get('/create')
+  async createInvite(
+    @Query('guild_id') guild_id: string,
+    @Query('code') code: string,
+    @Cookies('token') token: CookieValue,
+    @Res() response: Response,
+  ): Promise<void> {
+    // const res = await this.inviteService.useInvite({
+    //   code: code,
+    //   guild_id: guild_id,
+    //   user_id: user_id,
+    // });
+    response.status(201).send({
+      response: token,
     });
   }
 }

@@ -1,15 +1,18 @@
-import { Controller, Post, Req, Res, Put, Inject } from '@nestjs/common';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import type { IMessage } from './message';
-import type { Request, Response } from 'express';
-import { fieldsChecker } from 'src/funcs/fieldChecker';
-import { useMe } from 'src/funcs/useMe';
-import { PostgreSQL } from 'src/postgres';
+import {
+  Controller,
+  Post,
+  Inject,
+  Body,
+  HttpException,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { SocketIoServer } from 'src/socket-io.server';
 import { MessagesType } from './messages.schema';
 import { MessagesService } from './messages.service';
 import { PersonService } from '@/person/person.service';
 import { UserType } from '@/person/person';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('messages')
 export class MessagesController {
@@ -33,105 +36,44 @@ export class MessagesController {
     type: 0,
   };
   @Post('get')
-  async getMessages(
-    @Req()
-    request: Request<
-      any,
-      any,
-      {
-        id: string;
-      }
-    >,
-    @Res() response: Response,
-  ) {
-    const { id } = request.body;
-    this.messages
-      .getChannelMessages(id)
-      .then((res) => {
-        response.status(200).send({
-          response: res,
-        });
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
+  @HttpCode(200)
+  async getMessages(@Body('id') id: string) {
+    const getMessages = await this.messages.getChannelMessages(id);
+    if (!getMessages) {
+      throw new HttpException(
+        'Error! Cannot get messages',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return {
+      response: getMessages,
+    };
   }
 
   @Post()
-  async addMessage(
-    @Req()
-    request: Request<any, any, MessagesType>,
-    @Res() response: Response,
-  ) {
-    const me = useMe(request);
+  @HttpCode(204)
+  async addMessage(@Body() body: MessagesType, @Profile() user: CookieProfile) {
     const myProfile = (await this.profile.getUser({
-      username: me.login,
+      username: user.login,
     })) as Partial<UserType>;
 
     const message: MessagesType = {
       ...this.defaultMessage,
-      ...request.body,
+      ...body,
       author: myProfile,
       timestamp: +new Date(),
     };
-    this.messages
-      .create(message)
-      .then((res) => {
-        this.socketServer
-          .getServer()
-          .to(message.channel_id)
-          .emit('add-message', res);
-        response.status(201).send(res);
-      })
-      .catch((err) => {
-        response.status(500).send({
-          error: err.stack,
-          response: false,
-        });
-      });
+
+    const createdMessage = await this.messages.create(message);
+    if (!createdMessage) {
+      throw new HttpException(
+        'Error! Cannot create messages',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.socketServer
+      .getServer()
+      .to(message.channel_id)
+      .emit('add-message', createdMessage);
   }
-  // @Put()
-  // async edit(
-  //   @Req()
-  //   request: Request<any, any, IMessage>,
-  //   @Res() response: Response,
-  // ) {
-  //   const { id } = request.body;
-  //   const me = useMe(request);
-  //   const isOk = fieldsChecker(
-  //     request.body,
-  //     {
-  //       id: 'number',
-  //     },
-  //     response,
-  //   );
-  //   if (!isOk) {
-  //     return;
-  //   }
-
-  //   const body = {
-  //     name: request.body?.text_content,
-  //   };
-
-  //   this.db
-  //     .update({
-  //       table: 'message',
-  //       text: `SET ${this.db.setByKeys(Object.values(body))}`,
-  //       condition: `WHERE id = ${id} AND created_by = '${me}'`,
-  //     })
-  //     .then(() => {
-  //       response.status(200).send({
-  //         response: true,
-  //       });
-  //     })
-  //     .catch((err) => {
-  //       response.status(500).send({
-  //         error: err.stack,
-  //         response: false,
-  //       });
-  //     });
-  // }
 }

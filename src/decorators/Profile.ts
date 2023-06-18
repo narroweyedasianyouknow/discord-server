@@ -1,8 +1,10 @@
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { verify } from 'jsonwebtoken';
 import type { Request } from 'express';
 
-export const useMe = function (req: Request) {
-  const authorization = req.cookies?.token;
+export const Profile = createParamDecorator((data, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest() as Request;
+  const authorization = request.cookies['token'];
   if (authorization && process.env.SECRET) {
     let decoded: any;
     try {
@@ -22,4 +24,4 @@ export const useMe = function (req: Request) {
     login: undefined,
     user_id: undefined,
   };
-};
+});
