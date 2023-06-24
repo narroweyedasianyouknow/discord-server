@@ -1,10 +1,10 @@
 import {
-     Controller,
-     Post,
-     Res,
-     UploadedFile,
-     UploadedFiles,
-     UseInterceptors,
+      Controller,
+      Post,
+      Res,
+      UploadedFile,
+      UploadedFiles,
+      UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -14,75 +14,75 @@ import { AttachmentType } from '@/controllers/messages/files.shema';
 
 @Controller('files')
 export class FilesController {
-     buffer = Buffer.alloc(24);
+      buffer = Buffer.alloc(24);
 
-     @Post('avatar')
-     @UseInterceptors(FileInterceptor('file'))
-     async uploadFile(
-          @UploadedFile()
-          file: Express.Multer.File,
-          @Res() response: Response,
-     ) {
-          const { path, mimetype, filename } = file;
+      @Post('avatar')
+      @UseInterceptors(FileInterceptor('file'))
+      async uploadFile(
+            @UploadedFile()
+            file: Express.Multer.File,
+            @Res() response: Response,
+      ) {
+            const { path, mimetype, filename } = file;
 
-          const dimensions = await sharp(path).metadata();
+            const dimensions = await sharp(path).metadata();
 
-          const attach: AttachmentType = {
-               filename: filename,
-               size: dimensions.size ?? 0,
-               height: dimensions.height ?? 0,
-               width: dimensions.width ?? 0,
-               content_type: mimetype,
-               description: '',
-               duration_secs: undefined,
-               ephemeral: false,
-               waveform: undefined,
-          };
-          response.status(201).send({
-               response: attach,
-          });
-     }
-     @Post('attachments')
-     @UseInterceptors(FilesInterceptor('files'))
-     async uploadFilesList(
-          @UploadedFiles()
-          files: Express.Multer.File[],
-          @Res() response: Response,
-     ) {
-          // TODO Implement GOOGLE VISION to check explicit content
-          response.status(201).send({
-               response: await Promise.all(
-                    files.map(async ({ path, mimetype, filename }) => {
-                         const dimensions = await sharp(path).metadata();
+            const attach: AttachmentType = {
+                  filename: filename,
+                  size: dimensions.size ?? 0,
+                  height: dimensions.height ?? 0,
+                  width: dimensions.width ?? 0,
+                  content_type: mimetype,
+                  description: '',
+                  duration_secs: undefined,
+                  ephemeral: false,
+                  waveform: undefined,
+            };
+            response.status(201).send({
+                  response: attach,
+            });
+      }
+      @Post('attachments')
+      @UseInterceptors(FilesInterceptor('files'))
+      async uploadFilesList(
+            @UploadedFiles()
+            files: Express.Multer.File[],
+            @Res() response: Response,
+      ) {
+            // TODO Implement GOOGLE VISION to check explicit content
+            response.status(201).send({
+                  response: await Promise.all(
+                        files.map(async ({ path, mimetype, filename }) => {
+                              const dimensions = await sharp(path).metadata();
 
-                         const attach: AttachmentType = {
-                              filename: filename,
-                              size: dimensions.size ?? 0,
-                              height: dimensions.height ?? 0,
-                              width: dimensions.width ?? 0,
-                              content_type: mimetype,
-                              description: '',
-                              duration_secs: undefined,
-                              ephemeral: false,
-                              waveform: undefined,
-                         };
-                         // TODO VIDEO DURATION & DIMENSIONS
-                         // const command = `ffprobe -v error -show_entries format=duration:stream=width,height -of json ${path}`;
-                         // exec(command, (err, stdout, stderr) => {
-                         //   const metadata = JSON.parse(stdout);
+                              const attach: AttachmentType = {
+                                    filename: filename,
+                                    size: dimensions.size ?? 0,
+                                    height: dimensions.height ?? 0,
+                                    width: dimensions.width ?? 0,
+                                    content_type: mimetype,
+                                    description: '',
+                                    duration_secs: undefined,
+                                    ephemeral: false,
+                                    waveform: undefined,
+                              };
+                              // TODO VIDEO DURATION & DIMENSIONS
+                              // const command = `ffprobe -v error -show_entries format=duration:stream=width,height -of json ${path}`;
+                              // exec(command, (err, stdout, stderr) => {
+                              //   const metadata = JSON.parse(stdout);
 
-                         //   const duration = metadata.format.duration;
-                         //   const width = metadata.streams[0].width;
-                         //   const height = metadata.streams[0].height;
+                              //   const duration = metadata.format.duration;
+                              //   const width = metadata.streams[0].width;
+                              //   const height = metadata.streams[0].height;
 
-                         //   console.log('Длительность (в секундах):', duration);
-                         //   console.log('Высота:', height);
-                         //   console.log('Ширина:', width);
-                         // });
+                              //   console.log('Длительность (в секундах):', duration);
+                              //   console.log('Высота:', height);
+                              //   console.log('Ширина:', width);
+                              // });
 
-                         return attach;
-                    }),
-               ),
-          });
-     }
+                              return attach;
+                        }),
+                  ),
+            });
+      }
 }

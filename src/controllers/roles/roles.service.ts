@@ -6,13 +6,13 @@ import { RolesType, Roles } from './roles.schema';
 
 @Injectable()
 export class RolesService {
-     constructor(
-          @InjectModel(Roles.name)
-          private rolesModel: Model<Roles>,
-     ) {}
+      constructor(
+            @InjectModel(Roles.name)
+            private rolesModel: Model<Roles>,
+      ) {}
 
-     async create(createPersonDto: RolesType) {
-          const createdPerson = new this.rolesModel(createPersonDto);
-          return createdPerson.save();
-     }
+      async create(createPersonDto: RolesType) {
+            const createdPerson = new this.rolesModel(createPersonDto);
+            return createdPerson.save();
+      }
 }

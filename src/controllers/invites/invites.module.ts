@@ -7,19 +7,19 @@ import { InvitesService } from './invites.service';
 
 import { Guild, GuildSchema } from '@/controllers/guild/guild.schema';
 import {
-     UsersGuilds,
-     UsersGuildsSchema,
+      UsersGuilds,
+      UsersGuildsSchema,
 } from '@/controllers/users_guilds/users_guilds.schema';
 
 @Module({
-     imports: [
-          MongooseModule.forFeature([
-               { name: Invites.name, schema: InvitesSchema },
-               { name: Guild.name, schema: GuildSchema },
-               { name: UsersGuilds.name, schema: UsersGuildsSchema },
-          ]),
-     ],
-     controllers: [InvitesController],
-     providers: [InvitesService],
+      imports: [
+            MongooseModule.forFeature([
+                  { name: Invites.name, schema: InvitesSchema },
+                  { name: Guild.name, schema: GuildSchema },
+                  { name: UsersGuilds.name, schema: UsersGuildsSchema },
+            ]),
+      ],
+      controllers: [InvitesController],
+      providers: [InvitesService],
 })
 export class InvitesModule {}
