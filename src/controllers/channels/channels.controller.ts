@@ -7,21 +7,21 @@ import {
   HttpStatus,
   Inject,
   Param,
-  ParseIntPipe,
   Post,
   Put,
-  Req,
-  Res,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
 import { ChannelType } from './channels';
 import { CHANNEL_TYPES_LIST } from './channels';
 import { ChannelService } from './channels.service';
 import { Profile } from '@/decorators/Profile';
+import { SocketStore } from '@/socketStore/SocketStore';
 
 @Controller('channels')
 export class ChannelsController {
-  constructor(@Inject(ChannelService) private channel: ChannelService) {}
+  constructor(
+    @Inject(ChannelService) private channel: ChannelService,
+    @Inject(SocketStore) private socketStore: SocketStore,
+  ) {}
   // @Inject(UserGuildsService) private userGuilds: UserGuildsService,
 
   private defaultValue: ChannelType = {
@@ -64,6 +64,9 @@ export class ChannelsController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const socket = this.socketStore.getUserSocket(user.user_id);
+    socket?.join(create.id);
     return {
       response: create,
     };

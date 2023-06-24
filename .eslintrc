@@ -22,6 +22,8 @@
   },
   "globals": {
     "Express": "readonly",
+    "RTCSessionDescriptionInit": "readonly",
+    "RTCIceCandidateInit": "readonly",
     "CookieValue": "readonly",
     "CookieProfile": "readonly"
   },

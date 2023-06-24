@@ -13,10 +13,10 @@ import { ChannelService } from '@/controllers/channels/channels.service';
 import { Messages, MessagesSchema } from './messages.schema';
 import { MessagesController } from './message.controller';
 import { MessagesService } from './messages.service';
-import { SocketIoServer } from '@/socket/socket-io.server';
 import { Guild, GuildSchema } from '@/controllers/guild/guild.schema';
 import { Person, PersonSchema } from '@/controllers/person/person.schema';
 import { PersonService } from '@/controllers/person/person.service';
+import { SocketGateway } from '@/socket/socket.gateway';
 
 @Module({
   imports: [
@@ -29,6 +29,6 @@ import { PersonService } from '@/controllers/person/person.service';
     ]),
   ],
   controllers: [MessagesController],
-  providers: [MessagesService, ChannelService, PersonService, SocketIoServer],
+  providers: [MessagesService, ChannelService, PersonService, SocketGateway],
 })
 export class MessageModule {}
