@@ -1,9 +1,9 @@
+import { ImageAnnotatorClient } from '@google-cloud/vision';
 import { createParamDecorator } from '@nestjs/common';
-import vision from '@google-cloud/vision';
 
 export const GoogleVision = createParamDecorator(() => {
-  const GoogleCloudClient = new vision.ImageAnnotatorClient({
-    keyFile: 'keyFile.json',
-  });
-  return GoogleCloudClient;
+      const GoogleCloudClient = new ImageAnnotatorClient({
+            keyFile: 'keyFile.json',
+      });
+      return GoogleCloudClient;
 });
