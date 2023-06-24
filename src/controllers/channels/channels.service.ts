@@ -29,7 +29,7 @@ export class ChannelService {
     // const user = await this.myProfile(userData);
     const iHaveAccess = await this.checkAccess({
       owner_id: user_id,
-      id: createChannelDto.parent_id,
+      id: createChannelDto.guild_id,
     });
     if (iHaveAccess) {
       const createdPerson = new this.channel(createChannelDto);

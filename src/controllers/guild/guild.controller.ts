@@ -25,8 +25,7 @@ import {
   DEFAULT_PERMISSION,
   UserGuildsService,
 } from '@/controllers/users_guilds/users_guilds.service';
-import { SocketStore } from '@/socket/SocketStore';
-import { SocketIoServer } from '@/socket/socket-io.server';
+import { SocketStore } from '@/socketStore/SocketStore';
 import { Profile } from '@/decorators/Profile';
 
 @Controller('guild')
@@ -35,7 +34,6 @@ export class GuildController {
     @Inject(UserGuildsService) private userGuilds: UserGuildsService,
     @Inject(GuildService) private guild: GuildService,
     @Inject(SocketStore) private socketStore: SocketStore,
-    @Inject(SocketIoServer) private socketServer: SocketIoServer,
   ) {}
   expiresAge = () => {
     const date = new Date();

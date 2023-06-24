@@ -13,7 +13,6 @@ import {
   UsersGuilds,
   UsersGuildsSchema,
 } from '@/controllers/users_guilds/users_guilds.schema';
-import { SocketIoServer } from '@/socket/socket-io.server';
 import { ChannelsModule } from '@/controllers/channels/channels.module';
 import AppController from './app.controller';
 import { MessageModule } from '@/controllers/messages/message.module';
@@ -21,8 +20,9 @@ import {
   Channels,
   ChannelsSchema,
 } from '@/controllers/channels/channels.schema';
-import { SocketStoreModule } from '@/socket/socketStore.module';
+import { SocketStoreModule } from '@/socketStore/socketStore.module';
 import { InvitesModule } from '@/controllers/invites/invites.module';
+import { SocketGateway } from './socket/socket.gateway';
 
 // const controllers = [];
 @Module({
@@ -48,7 +48,7 @@ import { InvitesModule } from '@/controllers/invites/invites.module';
     InvitesModule,
   ],
   controllers: [FilesController, AppController],
-  providers: [SocketIoServer],
+  providers: [SocketGateway],
 })
 export class AppModule {}
 // export class AppModule implements NestModule {

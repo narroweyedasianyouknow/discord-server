@@ -14,7 +14,6 @@ import {
 } from '@/controllers/channels/channels.schema';
 import { ChannelService } from '@/controllers/channels/channels.service';
 import { Roles, RolesSchema } from '@/controllers/roles/roles.schema';
-import { SocketIoServer } from '@/socket/socket-io.server';
 import { UserGuildsService } from '@/controllers/users_guilds/users_guilds.service';
 
 @Module({
@@ -27,6 +26,6 @@ import { UserGuildsService } from '@/controllers/users_guilds/users_guilds.servi
     ]),
   ],
   controllers: [GuildController],
-  providers: [UserGuildsService, GuildService, ChannelService, SocketIoServer],
+  providers: [UserGuildsService, GuildService, ChannelService],
 })
 export class GuildModule {}

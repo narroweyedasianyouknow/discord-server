@@ -7,19 +7,19 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { SocketIoServer } from '@/socket/socket-io.server';
 import { MessagesType } from './messages.schema';
 import { MessagesService } from './messages.service';
 import { PersonService } from '@/controllers/person/person.service';
 import { UserType } from '@/controllers/person/person';
 import { Profile } from '@/decorators/Profile';
+import { SocketGateway } from '@/socket/socket.gateway';
 
 @Controller('messages')
 export class MessagesController {
   constructor(
     @Inject(MessagesService) private messages: MessagesService,
     @Inject(PersonService) private profile: PersonService,
-    @Inject(SocketIoServer) private socketServer: SocketIoServer,
+    private socketGateway: SocketGateway,
   ) {}
 
   private defaultMessage = {
@@ -71,9 +71,13 @@ export class MessagesController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    this.socketServer
-      .getServer()
+
+    this.socketGateway.server
       .to(message.channel_id)
       .emit('add-message', createdMessage);
+    // this.socketServer
+    //   .getServer()
+    //   .to(message.channel_id)
+    //   .emit('add-message', createdMessage);
   }
 }

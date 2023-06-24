@@ -1,4 +1,4 @@
-import { SocketStore } from '@/socket/SocketStore';
+import { SocketStore } from '@/socketStore/SocketStore';
 import { Global, Module } from '@nestjs/common';
 
 @Global()
