@@ -54,10 +54,17 @@ export class ChannelsController {
       @Post('create')
       @HttpCode(201)
       async create(@Body() body: ChannelType, @Profile() user: CookieProfile) {
-            const create = await this.channel.create(
-                  { ...this.defaultValue, ...body },
-                  user.user_id,
-            );
+            const channel = {
+                  ...this.defaultValue,
+                  ...body,
+            };
+
+            if (body.channel_type === CHANNEL_TYPES_LIST.GUILD_VOICE) {
+                  channel.bitrate = 64000;
+                  channel.user_limit = 0;
+            }
+
+            const create = await this.channel.create(channel, user.user_id);
             if (!create) {
                   throw new HttpException(
                         'Error! Cannot create guild',

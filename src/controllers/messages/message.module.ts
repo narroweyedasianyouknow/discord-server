@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import {
+      VoiceSession,
+      VoiceSessionSchema,
+} from '../voiceSessions/voiceSessions.schema';
+import { VoiceSessionService } from '../voiceSessions/voiceSessions.service';
 import { MessagesController } from './message.controller';
 import { Messages, MessagesSchema } from './messages.schema';
 import { MessagesService } from './messages.service';
@@ -27,6 +32,10 @@ import { SocketGateway } from '@/socket/socket.gateway';
                   { name: UsersGuilds.name, schema: UsersGuildsSchema },
                   { name: Channels.name, schema: ChannelsSchema },
                   { name: Person.name, schema: PersonSchema },
+                  {
+                        name: VoiceSession.name,
+                        schema: VoiceSessionSchema,
+                  },
             ]),
       ],
       controllers: [MessagesController],
@@ -35,6 +44,7 @@ import { SocketGateway } from '@/socket/socket.gateway';
             ChannelService,
             PersonService,
             SocketGateway,
+            VoiceSessionService,
       ],
 })
 export class MessageModule {}
