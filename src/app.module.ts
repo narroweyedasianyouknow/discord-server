@@ -6,6 +6,12 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import AppController from './app.controller';
+import { VoiceSessionsModule } from './controllers/voiceSessions/voiceSessions.module';
+import {
+      VoiceSession,
+      VoiceSessionSchema,
+} from './controllers/voiceSessions/voiceSessions.schema';
+import { VoiceSessionService } from './controllers/voiceSessions/voiceSessions.service';
 import { multerOptions } from './multer';
 import { SocketGateway } from './socket/socket.gateway';
 
@@ -40,6 +46,10 @@ import { SocketStoreModule } from '@/socketStore/socketStore.module';
             MongooseModule.forFeature([
                   { name: UsersGuilds.name, schema: UsersGuildsSchema },
                   { name: Channels.name, schema: ChannelsSchema },
+                  {
+                        name: VoiceSession.name,
+                        schema: VoiceSessionSchema,
+                  },
             ]),
             MulterModule.register(multerOptions),
             PersonModule,
@@ -49,9 +59,10 @@ import { SocketStoreModule } from '@/socketStore/socketStore.module';
             MessageModule,
             SocketStoreModule,
             InvitesModule,
+            VoiceSessionsModule,
       ],
       controllers: [FilesController, AppController],
-      providers: [SocketGateway],
+      providers: [SocketGateway, VoiceSessionService],
 })
 export class AppModule {
       // TODO AuthMiddleware

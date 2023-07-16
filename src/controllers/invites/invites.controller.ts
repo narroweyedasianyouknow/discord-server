@@ -1,9 +1,15 @@
-import { Controller, Get, Inject, Param, Query, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import {
+      Controller,
+      Body,
+      Post,
+      Inject,
+      Param,
+      HttpCode,
+} from '@nestjs/common';
 
 import { InvitesService } from './invites.service';
 
-import { Cookies } from '@/decorators/Cookies';
+import { Profile } from '@/decorators/Profile';
 
 @Controller('invites')
 export class InvitesController {
@@ -12,37 +18,30 @@ export class InvitesController {
             private readonly inviteService: InvitesService,
       ) {}
 
-      @Get('use/:code')
+      @Post('use/:code')
+      @HttpCode(200)
       async useInvite(
-            @Query('user_id') user_id: string,
-            @Query('guild_id') guild_id: string,
+            @Profile() { user_id }: CookieProfile,
             @Param('code') code: string,
-            @Res() response: Response,
       ) {
             const res = await this.inviteService.useInvite({
                   code: code,
-                  guild_id: guild_id,
                   user_id: user_id,
             });
-            response.status(201).send({
-                  response: res,
-            });
+
+            return res;
       }
 
-      @Get('/create')
+      @Post('/create')
+      @HttpCode(201)
       async createInvite(
-            @Query('guild_id') guild_id: string,
-            @Query('code') code: string,
-            @Cookies('token') token: CookieValue,
-            @Res() response: Response,
-      ): Promise<void> {
-            // const res = await this.inviteService.useInvite({
-            //   code: code,
-            //   guild_id: guild_id,
-            //   user_id: user_id,
-            // });
-            response.status(201).send({
-                  response: token,
+            @Body('guild_id') guild_id: string,
+            @Profile() profile: CookieProfile,
+      ) {
+            const res = await this.inviteService.create({
+                  guild_id: guild_id,
+                  user_id: profile.user_id,
             });
+            return res;
       }
 }

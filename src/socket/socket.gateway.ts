@@ -14,6 +14,7 @@ import { Server, Socket } from 'socket.io';
 import { CHANNEL_TYPES_LIST } from '@/controllers/channels/channels';
 import { Channels } from '@/controllers/channels/channels.schema';
 import { UsersGuilds } from '@/controllers/users_guilds/users_guilds.schema';
+import { VoiceSessionService } from '@/controllers/voiceSessions/voiceSessions.service';
 import { SocketStore } from '@/socketStore/SocketStore';
 
 @WebSocketGateway()
@@ -24,6 +25,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
             private channelsModel: Model<Channels>,
             @InjectModel(UsersGuilds.name)
             private usersGuildsModel: Model<UsersGuilds>,
+            @Inject(VoiceSessionService)
+            private voiceSession: VoiceSessionService,
       ) {}
       @WebSocketServer()
       server: Server;
@@ -86,7 +89,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       @SubscribeMessage('createOffer')
       handleOffer(client: Socket, payload: RTCSessionDescriptionInit) {
             // Обработка предложения (offer) от клиента
-            console.log(payload);
             this.server.emit('offer', payload);
       }
 
